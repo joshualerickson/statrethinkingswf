@@ -1,0 +1,21 @@
+--- 
+title: "Statistical Rethinking for Soil, Water, and Fish"
+author: "Josh Erickson"
+date: "`r Sys.Date()`"
+site: bookdown::bookdown_site
+output: bookdown::bs4_book
+documentclass: book
+bibliography: [references.bib]
+biblio-style: apalike
+link-citations: yes
+github-repo: rstudio/bookdown-demo
+description: "An attempt to read Statistical Rethinking fully!"
+---
+
+# The Golem of Prague  
+
+Right now I’m just trying to work through what seems to be 4 years of reading statistical rethinking and learning statistics. Bare bones right now but hoping to make this more of a thing moving forward. Going to try and keep the context within a natural resource framework (fisheries, hydrology, soils).
+
+I won't go into Chapter 1 because it's mostly for you to read on your own. Great content and outline for the rest of the book but not much to put on here.  
+
+
