@@ -5,6 +5,8 @@
 knitr::opts_chunk$set(dev.args = list(png = list(type = "cairo")), message = F, warning = F, error = F)
 library(resourceviz)
 library(ggtext)
+library(ggplot2)
+library(dplyr)
 colorize <- function(x, color = "#1d33cc", caps = TRUE) {
   if (caps) {
     sprintf("<span style='text-transform: uppercase; color: %s;'>%s</span>", color,
@@ -47,8 +49,8 @@ d <-
          p5 = 1)
 
 head(d)
-svg_file <- 'Z:/GIT/stat_rethinking/chapters/inst/salvelinus-confluentus-bull-trout.svg'
-svg_file2 <- 'Z:/GIT/stat_rethinking/chapters/inst/oncorhynchus-mykiss-rainbow-trout.svg'
+svg_file <- knitr::include_graphics('images/salvelinus-confluentus-bull-trout.svg')
+svg_file2 <- knitr::include_graphics('images/oncorhynchus-mykiss-rainbow-trout.svg')
 svg_text <- paste(readLines(svg_file), collapse = "\n")
 svg_text2 <- paste(readLines(svg_file2), collapse = "\n")
 
@@ -307,15 +309,14 @@ First we need to sample a _theoretical_ stream network across a watershed and ju
 ```{r warning = F, message = F}
 library(terra)
 
-nhd <- rast('Z:/GIT/stat_rethinking/stat_rethinking_2023/nhdStrOrdRast.tif')
-sutton <- vect('Z:/GIT/stat_rethinking/stat_rethinking_2023/sutton.shp') %>% project(crs(nhd))
-nhd_sutton <- crop(nhd, sutton, mask = T)
+nhdplusHR <- rast('extdata/streamgridMT.tif')
+watershed <- vect('extdata/watershed.shp') %>% project(crs(nhdplusHR))
 
 ```
 
 ```{r figure-3, echo=F, fig.cap='Watershed with NHDPlus HR streams'}
-plot(nhd_sutton, col = 'blue')
-plot(sutton, add = TRUE, fill = NA)
+plot(nhdplusHR, col = 'blue')
+plot(watershed, add = TRUE, fill = NA)
 ```
 
 
@@ -352,12 +353,12 @@ Remember the 'fish in a bucket' example earlier where we followed the paths to c
 So, we'll randomly sample the stream raster in Figure \@ref(fig:figure-3) to get 9 samples of either S (stream) or L (land). 
 
 ```{r}
-set.seed(1234)
+set.seed(2349)
 
-sample9 <- terra::spatSample(nhd_sutton, size = 9, method = "random", replace = TRUE)
+sample9 <- terra::spatSample(nhdplusHR, size = 9, method = "random", replace = TRUE)
 
 ## just adding a S and L
-sample9$observations <- ifelse(is.na(sample9$nhdStrOrdRast), 'Land', 'Stream')
+sample9$observations <- ifelse(is.na(sample9$streamgrid), 'Land', 'Stream')
 ```
 
 
@@ -759,7 +760,7 @@ p1 + p2
 
 ### Quadratic approximation  
 
-Due to the downfalls of grid approximation (efficiency, scalability) there are other methods that can help with these issues relatively easy. One useful approach is `r colorize('quadratic approximation')`. If we look at \@ref(fig:figure-7), we can see that with a little imagination the posterior resembles a Gaussian (normal) shape. We'll take advantage of this shape with our posterior and apply the Gaussian approximation aka quadratic. The logarithm of the Gaussain distribution forms a parabola and that parabola is a quadratic function. This can work really well in linear regression and is very efficient so we'll use it at first in the following sections until we get more complex models. However, you'll see real quickly how this approximation might break down after reading the first step.    
+Due to the downfalls of grid approximation (scalability) there are other methods that we'll want to learn as well. One useful approach is `r colorize('quadratic approximation')`. If we look at \@ref(fig:figure-7), we can see that with a little imagination the posterior resembles a Gaussian (normal) shape. We'll take advantage of this shape with our posterior and apply the Gaussian approximation aka quadratic. The logarithm of the Gaussain distribution forms a parabola and that parabola is a quadratic function. This can work really well in linear regression and is very efficient so we'll use it at first in the following sections until we get more complex models. However, you'll see real quickly how this approximation might break down after reading the first step.    
 
 @mcelreath2018statistical lays out a couple steps when working with the quadratic approximation that we'll dive into.  
 
@@ -778,7 +779,7 @@ but usually your computer uses some numerical technique instead.
 -- @mcelreath2018statistical
 :::  
 
-Within the `rethinking` package, @mcelreath2018statistical has a function `quap` that does this for us. We just need to provide the necessary information and the function does the rest.  
+Within the `rethinking` package, @mcelreath2018statistical has a function `quap` that does this for us. We just need to provide the necessary information (data and params) and the function does the rest.  
 
 
 
@@ -799,72 +800,370 @@ precis(stream_qa)
 ```
 
 
-From the output we see summary stats from the approximation. We can already see with our data that the bounds extend beyond what is theoretically possible. Most of the time this is a problem and is where you really need to think about the assumptions of your data and what you want exactly out of your estimand. If we compare it to a `beta` distribution, you can see that it fits much better 
+From the output we see summary stats from the approximation. We can already see with our data that the bounds extend beyond what is theoretically possible (89% percentile interval is less than 0 on the lower bound). Most of the time this is not a huge problem but it is something you need to think about, i.e. the assumptions of your data and what you want exactly out of your estimand. From our summary results we are saying: _assuming the posterior is Gaussian, it is maximized at 0.11, and its standard deviation is 0.10_. We'll explore this later on through other methods but for now we'll just go with the Gaussian.  
 
-```{r, warning=FALSE, message=FALSE}
-beta_qa <- quap(
-alist(
-S ~ dbetabinom(size = 9, prob = p, theta = exp(t)) , # beta binomial likelihood
-p ~ dunif(0,1),
-t ~ dnorm(1,10)# uniform prior
-) ,
-data=list(S=1,L=8) )
-# display summary of quadratic approximation
+```{r figure-9,echo=F, warning=FALSE, message=FALSE, fig.cap="Graph showing an analytical approach (beta distribution) with the approximated approach (quadratic approximation)."}
 
-precis(beta_qa)
+beta_quap <- dplyr::tibble(
+  beta = dbeta(seq(0,1, length.out = 100), 1+1, 8+1),
+  quap = dnorm(seq(0,1, length.out = 100), 0.11, 0.10),
+  x = seq(0,1,length.out = 100)
+)
+
+beta_quap %>% 
+  pivot_longer(c(beta, quap)) %>% 
+  ggplot() +
+  geom_line(aes(x, value, color = name), size = 0.75, alpha = 0.8) +
+  scale_color_manual(values = c("#899DA4","#C93312"),
+                     name = 'Method',
+                     labels = c('Beta', 'Quadratic'))
 
 ```
 
 
 
-In the figure above, we can see that it does a decent job finding the shape but since it assumes Gaussian it's tails are thin as well as beyond the bounds of the parameter!  
+In the \@ref(fig:figure-9) above, we can see that it does a decent job finding the shape but since it assumes Gaussian it's tails are thin as well as beyond the bounds of the parameter (it gives a positive probability for 0...)!  
 
-Now make Figure 2.8.
+This egregious approximation get's better and better with more and more samples. Figure \@ref(fig:figure-10) shows how the quadratic gets better and better as you compare with the grid approximation. This is good news but is also a reason why small sample size in frequentist statistics can be troublesome and where another method (MCMC) can help, which is introduced next.  
 
-```{r, eval = FALSE, fig.width = 8, fig.height = 2.75}
+```{r figure-10, echo = FALSE, fig.width = 8, fig.height = 2.75, fig.cap="As the samples increase, the approximation starts to reflect the true distribution."}
 n_grid <- 100
+
+globe_qa_36 <-quap(
+alist(
+S ~ dbinom( 9*4 ,p) , # binomial likelihood
+p ~ dunif(0,1) # uniform prior
+) ,
+data=list(S=1*4) )
+
+globe_qa_36 <-quap(
+alist(
+S ~ dbinom( 9*8 ,p) , # binomial likelihood
+p ~ dunif(0,1) # uniform prior
+) ,
+data=list(S=1*8))
 
 # wrangle
 tibble(w = c(1, 4, 8),
-       n = c(9, 18, 36),
-       s = c(.16, .11, .08)) %>% 
+       n = c(9, 36, 72),
+       s = c(.10, precis(globe_qa_18)$sd, precis(globe_qa_36)$sd)) %>% 
   expand_grid(p_grid = seq(from = 0, to = 1, length.out = n_grid)) %>% 
   mutate(prior = 1,
-         m     = .67)  %>%
+         m     = .11)  %>%
   mutate(likelihood = dbinom(w, size = n, prob = p_grid)) %>%
   mutate(unstd_grid_posterior = likelihood * prior,
-         unstd_quad_posterior = dnorm(p_grid, m, s)) %>%
+         unstd_quad_posterior = dnorm(p_grid, m, s)
+         ) %>%
   group_by(w) %>% 
   mutate(grid_posterior = unstd_grid_posterior / sum(unstd_grid_posterior),
          quad_posterior = unstd_quad_posterior / sum(unstd_quad_posterior),
          n = str_c("n = ", n)) %>% 
   mutate(n = factor(n, levels = c("n = 9", "n = 18", "n = 36"))) %>% 
-  
+  pivot_longer(c(grid_posterior, quad_posterior)) %>% 
   # plot
   ggplot(aes(x = p_grid)) +
-  geom_line(aes(y = grid_posterior)) +
-  geom_line(aes(y = quad_posterior),
-            color = "grey50") +
-  labs(x = "proportion water",
+  geom_line(aes(y = value, color = name), size = 0.75, alpha = 0.8) +
+  scale_color_manual(values = c("#899DA4","#C93312"),
+                     name = 'Method',
+                     labels = c('Grid', 'Quadratic')) +
+  labs(x = "proportion of streams",
        y = "density") +
-  theme(panel.grid = element_blank()) +
+  theme(panel.grid = element_blank(),
+        axis.text = element_text(size = 9)
+        ) +
   facet_wrap(~n, scales = "free")
+```
+
+Another great _Rethinking_ section from @mcelreath2018statistical, making you think about what we are doing in comparison to non-Bayesian parameter estimation.  
+
+:::{.b--gray .ba .bw2 .ma2 .pa4 .shadow-1}  
+**Rethinking: Maximum likelihood estimation**. The quadratic approximation, either with a uniform
+prior or with a lot of data, is often equivalent to a `r colorize("maximum likelihood estimate")` (MLE) and its
+`r colorize("standard error")`. The MLE is a very common non-Bayesian parameter estimate. This correspondence between a Bayesian approximation and a common non-Bayesian estimator is both a blessing
+and a curse. It is a blessing, because it allows us to re-interpret a wide range of published non-Bayesian
+model fits in Bayesian terms. It is a curse, because maximum likelihood estimates have some curious
+drawbacks, and the quadratic approximation can share them. We’ll explore these in later chapters.
+
+-- @mcelreath2018statistical
+:::  
+
+### Markov chain Monte Carlo  
+
+The issues that we talked about before (time/efficiency, normality assumptions) rear their head when our models get more complex (mixed-effects models, maximizing the posterior). This is where `r colorize('markov chain monte carlo')` (MCMC) comes in handy. MCMC is said to be a big part of the resurgence of Bayesian data analysis that began in the 1990's.  
+
+Instead of trying to approximate the posterior directly, MCMC samples from the posterior. This always reminding me of bootstrapping @james2013introduction but we'll dive into this more in Chapter 9 and see how different it is.  
+
+Below is an example to wet the appetite for MCMC.  
+
+```{r}
+n_samples <- 1000
+p <- rep( NA , n_samples )
+p[1] <- 0.5
+S <- 1
+L <- 8
+
+for ( i in 2:n_samples ) {
+p_new <- rnorm( 1 , p[i-1] , 0.1 )
+if ( p_new < 0 ) p_new <- abs( p_new )
+if ( p_new > 1 ) p_new <- 2 - p_new
+q0 <- dbinom( S , S+L , p[i-1] )
+q1 <- dbinom( S , S+L , p_new )
+p[i] <- ifelse( runif(1) < q1/q0 , p_new , p[i-1] )
+}
+
+```
+
+```{r figure-11, echo=FALSE, fig.cap="Comparing analytical approach (Beta) with sampling (MCMC)."}
+tibble(
+  p = density(p, n = 1000, from = 0, to = 1)$y,
+  beta = dbeta(seq(0,1, length.out = 1000), S+1, L+1),
+  x = seq(0,1, length.out = 1000)
+  ) %>% 
+  pivot_longer(c(p, beta)) %>% 
+  ggplot(aes(x, value)) + 
+  geom_line(aes(color = name), size = 0.75, alpha = 0.8) +
+  scale_color_manual(values = c("#899DA4","#C93312"),
+                     name = 'Method',
+                     labels = c('Beta', 'MCMC'))
+
+```
+
+
+## Practice  
+
+**2E1.** Which of the expressions below correspond to the statement: the probability of rain on Monday?  
+
+(1) Pr(rain)
+(2) Pr(rain|Monday)
+(3) Pr(Monday|rain)
+(4) Pr(rain, Monday)/ Pr(Monday)  
+
+
+:::{.b--gray .ba .bw2 .ma2 .pa4 .shadow-1}  
+Statement (2) and (4) are both correct. (4) is the definition of a conditional probability, $$\text{Pr(rain|Monday)}=\frac{\text{Pr(rain, Monday)}}{\text{Pr(Monday)}} \\ \text{Conditional Probability, } P(A|B) = \frac{A\cap B}{P(B)}$$
+:::  
+
+**2E2.** Which of the following statements corresponds to the expression: Pr(Monday|rain)?  
+
+(1) The probability of rain on Monday.
+(2) The probability of rain, given that it is Monday.
+(3) The probability that it is Monday, given that it is raining.
+(4) The probability that it is Monday and that it is raining.  
+
+:::{.b--gray .ba .bw2 .ma2 .pa4 .shadow-1}  
+Statement (3) is the the correct answer. (4) seems likely but it's not the same meaning in probability theory.  
+
+1. The probability that it is Monday, given that it is raining:
+This is denoted as $\text{Pr(Monday∣Raining}$), and it represents the probability that it is Monday given the information that it is currently raining. This is an example of conditional probability.  
+
+2. The probability that it is Monday and that it is raining:
+This is denoted as $\text{Pr(Monday}\cap \text{Raining)}$, and it represents the probability that both events, Monday and raining, occur simultaneously. This is an example of the intersection (commonly called the joint probability) of two events.
+:::  
+
+
+**2E3.** Which of the expressions below correspond to the statement: the probability that it is Monday, given that it is raining?  
+
+(1) Pr(Monday|rain)
+(2) Pr(rain|Monday)
+(3) Pr(rain|Monday) Pr(Monday)
+(4) Pr(rain|Monday) Pr(Monday)/ Pr(rain)
+(5) Pr(Monday|rain) Pr(rain)/ Pr(Monday)  
+
+:::{.b--gray .ba .bw2 .ma2 .pa4 .shadow-1}  
+(1) and (4) are both correct. (4) is correct because of Bayes' theorem: $$\frac{\text{Pr(rain|Monday) Pr(Monday)}}{\text{Pr(rain)}}=\text{Pr(Monday|rain)}$$
+:::  
+
+
+
+**2E4.** The Bayesian statistician Bruno de Finetti (1906–1985) began his book on probability theory
+with the declaration: “PROBABILITY DOES NOT EXIST.” The capitals appeared in the original, so
+I imagine de Finetti wanted us to shout this statement. What he meant is that probability is a device
+for describing uncertainty from the perspective of an observer with limited knowledge; it has no
+objective reality. Discuss the stream occurrence example from the chapter, in light of this statement. What
+does it mean to say “the probability of a stream is 0.11”?  
+
+:::{.b--gray .ba .bw2 .ma2 .pa4 .shadow-1}  
+I take this to mean that the parameter (unobserved) estimated from data (observed) has a probability of 0.11, which is our belief or uncertainty about the the small world. It's an important distinction that @mcelreath2018statistical talks about with unobserved variables where the probability is not a reality but instead a parameter that we use data (information) to estimate with. This is contrary to frequentist statistics where probabilities are *frequencies* which are observed as objective properties of the physical world.  
+:::  
+
+**Medium.**  
+
+**2M1.** Recall the globe tossing model from the chapter. Compute and plot the grid approximate
+posterior distribution for each of the following sets of observations. In each case, assume a uniform
+prior for p.  
+
+(1) L, L, L
+(2) L, L, L, S
+(3) S, L, L, S, L, L, L  
+
+```{r, echo=FALSE}
+p1 <- tibble(p_grid = seq(from = 0, to = 1, length.out = 1000),
+         prior  = 1) %>%
+  mutate(likelihood = dbinom(0, size = 3, prob = p_grid)) %>%
+  mutate(unstd_posterior = likelihood * prior) %>%
+  mutate(posterior = unstd_posterior / sum(unstd_posterior)) %>% 
+  
+  ggplot(aes(x = p_grid, y = posterior)) +
+  geom_line() +
+  labs(subtitle = "(1) L, L, L",
+       x = "probability of a stream",
+       y = "posterior probability")
+
+p2 <- tibble(p_grid = seq(from = 0, to = 1, length.out = 1000),
+         prior  = 1) %>%
+  mutate(likelihood = dbinom(1, size = 4, prob = p_grid)) %>%
+  mutate(unstd_posterior = likelihood * prior) %>%
+  mutate(posterior = unstd_posterior / sum(unstd_posterior)) %>% 
+  
+  ggplot(aes(x = p_grid, y = posterior)) +
+  geom_line() +
+  labs(subtitle = "(2) L, L, L, S",
+       x = "probability of a stream")
+
+p3 <- tibble(p_grid = seq(from = 0, to = 1, length.out = 1000),
+         prior  = 1) %>%
+  mutate(likelihood = dbinom(2, size = 7, prob = p_grid)) %>%
+  mutate(unstd_posterior = likelihood * prior) %>%
+  mutate(posterior = unstd_posterior / sum(unstd_posterior)) %>% 
+  
+  ggplot(aes(x = p_grid, y = posterior)) +
+  geom_line() +
+  labs(subtitle = "(3) S, L, L, S, L, L, L",
+       x = "probability of a stream")
+
+
+(p1|p2|p3) & theme(axis.text = element_text(size = 9))
+```
+
+
+**2M2.** Now assume a prior for p that is equal to zero when p > 0.5 and is a positive constant when
+p <= 0.5. Again compute and plot the grid approximate posterior distribution for each of the sets of
+observations in the problem just above.  
+
+```{r, echo=FALSE}
+p1 <- tibble(p_grid = seq(from = 0, to = 1, length.out = 1000),
+         prior  = ifelse(p_grid > 0.5, 0, 1)) %>%
+  mutate(likelihood = dbinom(0, size = 3, prob = p_grid)) %>%
+  mutate(unstd_posterior = likelihood * prior) %>%
+  mutate(posterior = unstd_posterior / sum(unstd_posterior)) %>% 
+  
+  ggplot(aes(x = p_grid, y = posterior)) +
+  geom_line() +
+  labs(subtitle = "(1) L, L, L",
+       x = "probability of a stream",
+       y = "posterior probability")
+
+p2 <- tibble(p_grid = seq(from = 0, to = 1, length.out = 1000),
+         prior  = ifelse(p_grid > 0.5, 0, 1)) %>%
+  mutate(likelihood = dbinom(1, size = 4, prob = p_grid)) %>%
+  mutate(unstd_posterior = likelihood * prior) %>%
+  mutate(posterior = unstd_posterior / sum(unstd_posterior)) %>% 
+  
+  ggplot(aes(x = p_grid, y = posterior)) +
+  geom_line() +
+  labs(subtitle = "(2) L, L, L, S",
+       x = "probability of a stream")
+
+p3 <- tibble(p_grid = seq(from = 0, to = 1, length.out = 1000),
+         prior  = ifelse(p_grid > 0.5, 0, 1)) %>%
+  mutate(likelihood = dbinom(2, size = 7, prob = p_grid)) %>%
+  mutate(unstd_posterior = likelihood * prior) %>%
+  mutate(posterior = unstd_posterior / sum(unstd_posterior)) %>% 
+  
+  ggplot(aes(x = p_grid, y = posterior)) +
+  geom_line() +
+  labs(subtitle = "(3) S, L, L, S, L, L, L",
+       x = "probability of a stream")
+
+
+(p1|p2|p3) & theme(axis.text = element_text(size = 9))
+```  
+
+**2M3.** Suppose there are two watersheds, one in a humid region and one in an arid region. The humid watershed is 20% covered
+in streams. The arid watershed is 100% land. Further suppose that one of these watersheds—you don’t know
+which—was sampled and produced a “Land” observation. Assume that each watershed was equally
+likely to be sampled. Show that the posterior probability that the watershed was the humid, conditional on
+seeing “land” (Pr(humid|land)), is 0.44.  
+
+:::{.b--gray .ba .bw2 .ma2 .pa4 .shadow-1}  
+Bayes' theorem: $$\text{Pr(humid|land)} = \frac{\text{Pr(land|humid) Pr(humid)}}{\text{Pr(land)}} \\ \text{Pr(humid|land)} = \frac{0.80\times 0.50}{(0.50\times 0.80) + (1-0.50)*1}$$
+:::  
+
+```{r}
+# probability of land, given humid region
+p_lh <- 0.8
+
+# probability of land, given arid region
+p_la <- 1.0
+
+# probability of humid region
+p_h <- 0.5
+
+# probability of land
+p_l <- (p_h * p_lh) + ((1 - p_h) * p_la)
+
+# probability of humid region, given land (using Bayes' Theorem)
+p_hl <- (p_lh * p_h) / p_l
+p_hl
 ```
 
 
 
+**2M4.** Suppose you have a deck with only three cards. Each card has two sides, and each side is either
+black or white. One card has two black sides. The second card has one black and one white side. The
+third card has two white sides. Now suppose all three cards are placed in a bag and shuffled. Someone
+reaches into the bag and pulls out a card and places it flat on a table. A black side is shown facing up,
+but you don’t know the color of the side facing down. Show that the probability that the other side is
+also black is 2/3. Use the counting method (Section 2 of the chapter) to approach this problem. This
+means counting up the ways that each card could produce the observed data (a black side facing up
+on the table).  
 
+**2M5.** Now suppose there are four cards: B/B, B/W, W/W, and another B/B. Again suppose a card is
+drawn from the bag and a black side appears face up. Again calculate the probability that the other
+side is black.  
 
+**2M6.** Imagine that black ink is heavy, and so cards with black sides are heavier than cards with white
+sides. As a result, it’s less likely that a card with black sides is pulled from the bag. So again assume
+there are three cards: B/B, B/W, and W/W. After experimenting a number of times, you conclude that
+for every way to pull the B/B card from the bag, there are 2 ways to pull the B/W card and 3 ways to
+pull the W/W card. Again suppose that a card is pulled and a black side appears face up. Show that
+the probability the other side is black is now 0.5. Use the counting method, as before.  
 
+**2M7.** Assume again the original card problem, with a single card showing a black side face up. Before
+looking at the other side, we draw another card from the bag and lay it face up on the table. The face
+that is shown on the new card is white. Show that the probability that the first card, the one showing
+a black side, has black on its other side is now 0.75. Use the counting method, if you can. Hint: Treat
+this like the sequence of globe tosses, counting all the ways to see each observation, for each possible
+first card.  
 
+**Hard**  
 
+**2H1.** Suppose there are two species of panda bear. Both are equally common in the wild and live
+in the same places. They look exactly alike and eat the same food, and there is yet no genetic assay
+capable of telling them apart. They differ however in their family sizes. Species A gives birth to twins
+10% of the time, otherwise birthing a single infant. Species B births twins 20% of the time, otherwise
+birthing singleton infants. Assume these numbers are known with certainty, from many years of field
+research.
+Now suppose you are managing a captive panda breeding program. You have a new female panda
+of unknown species, and she has just given birth to twins. What is the probability that her next birth
+will also be twins?  
 
+**2H2.** Recall all the facts from the problem above. Now compute the probability that the panda we
+have is from species A, assuming we have observed only the first birth and that it was twins.  
 
+**2H3.** Continuing on from the previous problem, suppose the same panda mother has a second birth
+and that it is not twins, but a singleton infant. Compute the posterior probability that this panda is
+species A.  
 
-
-
-
-
+**2H4.** A common boast of Bayesian statisticians is that Bayesian inference makes it easy to use all of
+the data, even if the data are of different types.
+So suppose now that a veterinarian comes along who has a new genetic test that she claims can
+identify the species of our mother panda. But the test, like all tests, is imperfect. This is the information you have about the test:
+• The probability it correctly identifies a species A panda is 0.8.
+• The probability it correctly identifies a species B panda is 0.65.
+The vet administers the test to your panda and tells you that the test is positive for species A. First
+ignore your previous information from the births and compute the posterior probability that your
+panda is species A. Then redo your calculation, now using the birth data as well.
 
 
 

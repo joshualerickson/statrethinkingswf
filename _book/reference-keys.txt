@@ -9,6 +9,9 @@ fig:figure-5
 fig:figure-6
 fig:figure-7
 fig:figure-8
+fig:figure-9
+fig:figure-10
+fig:figure-11
 the-golem-of-prague
 small-worlds-and-large-worlds
 small-worlds-and-large-worlds-1
@@ -30,5 +33,7 @@ making-the-model-go
 motors
 grid-approximation
 quadratic-approximation
+markov-chain-monte-carlo
+practice
 sampling-the-imaginary
 math-example
