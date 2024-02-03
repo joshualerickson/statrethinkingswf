@@ -1,23 +1,27 @@
 # Sampling the Imaginary
 
-We describe our methods in this chapter.
+@mcelreath2018statistical starts this chapter off with a classic example of Bayes' theorem and how it can be confusing for people to come to the right probability when given a result from a model or test for example. He uses an example with vampires but we'll stick with the soil, water and fish theme and build on our stream proportion model. From @erickson2023modeling, we'll use the results from the Topoclimatic model.  
 
-Math can be added in body using usual syntax like this 
+So, for the models accuracy we get 83.5% or $\text{Pr(positive model result|stream)} = 0.835$. It's a decent test and does a good job at predicting headwater streams but it makes mistakes, which we'll call false positives. The false positive rate of the model is $\text{Pr(positive test result|land)} = 0.16$. The final bit of information that we have is the proportion of streams across the landscape $\text{Pr(stream)} = 0.11$, which we generated in Chapter \@ref(quad) with quadratic approximation.  
 
-## math example
-
-$p$ is unknown but expected to be around 1/3. Standard error will be approximated
+Now we can produce Bayes' theorem,
 
 $$
-SE = \sqrt(\frac{p(1-p)}{n}) \approx \sqrt{\frac{1/3 (1 - 1/3)} {300}} = 0.027
+\text{Pr(stream|positive)} = \frac{\text{Pr(positive|stream)}\times\text{Pr(stream)}}{\text{Pr(positive)}}
 $$
 
-You can also use math in footnotes like this^[where we mention $p = \frac{a}{b}$].
+```{r}
+Pr_positive_stream <- 0.835
+Pr_positive_land <- 0.16
+Pr_stream <- 0.11
+Pr_positive <- Pr_positive_stream*Pr_stream + Pr_positive_land*(1-Pr_stream)
 
-We will approximate standard error to 0.027[^longnote]
+(Pr_stream_positive <- (Pr_positive_stream*Pr_stream)/Pr_positive)
+```
+This results in a 39% chance that our positive result is a stream. This seems really counterintuitive! How can we have a model with 83.5% accuracy but when it returns a positive result there is only a 39% chance that result is correct. When the response you're trying to predict is rare, it makes it difficult to get all of the true cases due to the false positives. Play around with the numbers above and you'll see how the rareness of the condition makes it more unlikely you actually have a positive result. 
 
-[^longnote]: $p$ is unknown but expected to be around 1/3. Standard error will be approximated
 
-    $$
-    SE = \sqrt(\frac{p(1-p)}{n}) \approx \sqrt{\frac{1/3 (1 - 1/3)} {300}} = 0.027
-    $$
+
+
+
+

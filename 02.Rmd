@@ -7,6 +7,7 @@ library(resourceviz)
 library(ggtext)
 library(ggplot2)
 library(dplyr)
+library(rethinking)
 colorize <- function(x, color = "#1d33cc", caps = TRUE) {
   if (caps) {
     sprintf("<span style='text-transform: uppercase; color: %s;'>%s</span>", color,
@@ -26,7 +27,7 @@ A great distinction between the small and large world is the _small world_ is th
 
 In the small world there are no surprises and it is important to verify the logic, making sure that it performs as expected under favorable assumptions.  
 
-The large world has events that were not expected or imagined in the small world, e.g. coupling of events, a priori understanding is misleading, etc. This is essentially the modeling adage 'all models are wrong, but some are useful'. Just because the model in the small world makes logical sense doesn't mean that it will be consistent in the large world. As Richard says, 'But it is certainly a warm comfort.' 
+The large world has events that were not expected or imagined in the small world, e.g. coupling of events, a 0 understanding is misleading, etc. This is essentially the modeling adage 'all models are wrong, but some are useful'. Just because the model in the small world makes logical sense doesn't mean that it will be consistent in the large world. As Richard says, 'But it is certainly a warm comfort.' 
 
 This chapter is where you'll start building Bayesian models. Bayesian models learn from prior information and this is super helpful in the small world. If this assumptions are close to reality, then they are also great in the large world.  
 
@@ -758,7 +759,7 @@ p1 + p2
 ```
 
 
-### Quadratic approximation  
+### Quadratic approximation {#quad}  
 
 Due to the downfalls of grid approximation (scalability) there are other methods that we'll want to learn as well. One useful approach is `r colorize('quadratic approximation')`. If we look at \@ref(fig:figure-7), we can see that with a little imagination the posterior resembles a Gaussian (normal) shape. We'll take advantage of this shape with our posterior and apply the Gaussian approximation aka quadratic. The logarithm of the Gaussain distribution forms a parabola and that parabola is a quadratic function. This can work really well in linear regression and is very efficient so we'll use it at first in the following sections until we get more complex models. However, you'll see real quickly how this approximation might break down after reading the first step.    
 
@@ -783,7 +784,7 @@ Within the `rethinking` package, @mcelreath2018statistical has a function `quap`
 
 
 
-```{r, warning=FALSE, message=FALSE}
+```{r warning=FALSE, message=FALSE}
 library(rethinking)
 
 stream_qa <- quap(
@@ -836,7 +837,7 @@ p ~ dunif(0,1) # uniform prior
 ) ,
 data=list(S=1*4) )
 
-globe_qa_36 <-quap(
+globe_qa_72 <-quap(
 alist(
 S ~ dbinom( 9*8 ,p) , # binomial likelihood
 p ~ dunif(0,1) # uniform prior
@@ -846,7 +847,7 @@ data=list(S=1*8))
 # wrangle
 tibble(w = c(1, 4, 8),
        n = c(9, 36, 72),
-       s = c(.10, precis(globe_qa_18)$sd, precis(globe_qa_36)$sd)) %>% 
+       s = c(.10, precis(globe_qa_36)$sd, precis(globe_qa_72)$sd)) %>% 
   expand_grid(p_grid = seq(from = 0, to = 1, length.out = n_grid)) %>% 
   mutate(prior = 1,
          m     = .11)  %>%
@@ -858,7 +859,7 @@ tibble(w = c(1, 4, 8),
   mutate(grid_posterior = unstd_grid_posterior / sum(unstd_grid_posterior),
          quad_posterior = unstd_quad_posterior / sum(unstd_quad_posterior),
          n = str_c("n = ", n)) %>% 
-  mutate(n = factor(n, levels = c("n = 9", "n = 18", "n = 36"))) %>% 
+  mutate(n = factor(n, levels = c("n = 9", "n = 36", "n = 72"))) %>% 
   pivot_longer(c(grid_posterior, quad_posterior)) %>% 
   # plot
   ggplot(aes(x = p_grid)) +
@@ -1118,9 +1119,47 @@ also black is 2/3. Use the counting method (Section 2 of the chapter) to approac
 means counting up the ways that each card could produce the observed data (a black side facing up
 on the table).  
 
+```{r}
+
+n_b <- function(x) {
+  rowSums(x == "B")
+}
+
+t <-
+  # for the first four columns, `p_` indexes position
+  tibble(p_1 = rep(c("B", "W"), times = c(2,1)),
+         p_2 = rep(c("B", "W"), times = c(1, 2))) %>% 
+  mutate(`ways to produce` = n_b(.),
+         Prior = 1,
+         Probability = round(Prior*`ways to produce`/sum(`ways to produce`), 2))
+
+t %>% 
+  knitr::kable(caption = 'Updating priors with new data.') 
+
+```
+
+
+
 **2M5.** Now suppose there are four cards: B/B, B/W, W/W, and another B/B. Again suppose a card is
 drawn from the bag and a black side appears face up. Again calculate the probability that the other
 side is black.  
+
+
+```{r}
+
+t <-
+  # for the first four columns, `p_` indexes position
+  tibble(p_1 = rep(c("B", "W"), times = c(3,1)),
+         p_2 = rep(c("B", "W"), times = c(2, 2))) %>% 
+  mutate(`ways to produce` = n_b(.),
+         Prior = 1,
+         Probability = round(Prior*`ways to produce`/sum(`ways to produce`), 2))
+
+t %>% 
+  knitr::kable(caption = 'Updating priors with new data.') 
+
+# add the two black cards together to get 80%
+```
 
 **2M6.** Imagine that black ink is heavy, and so cards with black sides are heavier than cards with white
 sides. As a result, it’s less likely that a card with black sides is pulled from the bag. So again assume
@@ -1129,12 +1168,41 @@ for every way to pull the B/B card from the bag, there are 2 ways to pull the B/
 pull the W/W card. Again suppose that a card is pulled and a black side appears face up. Show that
 the probability the other side is black is now 0.5. Use the counting method, as before.  
 
+```{r}
+t <-
+  # for the first four columns, `p_` indexes position
+  tibble(p_1 = rep(c("B", "W"), times = c(2,1)),
+         p_2 = rep(c("B", "W"), times = c(1, 2))) %>% 
+  mutate( `ways to produce` = n_b(.),
+          `new ways to produce` = c(1,2,3)*`ways to produce`,
+         Probability = round((`new ways to produce`)/sum(`new ways to produce`),2))
+
+t %>% 
+  knitr::kable(caption = 'Updating priors with new data.') 
+
+```
+
 **2M7.** Assume again the original card problem, with a single card showing a black side face up. Before
 looking at the other side, we draw another card from the bag and lay it face up on the table. The face
 that is shown on the new card is white. Show that the probability that the first card, the one showing
 a black side, has black on its other side is now 0.75. Use the counting method, if you can. Hint: Treat
 this like the sequence of globe tosses, counting all the ways to see each observation, for each possible
 first card.  
+
+```{r}
+t <-
+  # for the first four columns, `p_` indexes position
+  tibble(p_1 = rep(c("B", "W"), times = c(2,1)),
+         p_2 = rep(c("B", "W"), times = c(1, 2))) %>% 
+  mutate( `ways to produce 1st` = n_b(.),
+          `ways to produce 2nd` = c(3,2,3),
+         Probability = round((`ways to produce 1st`*`ways to produce 2nd`)/sum(`ways to produce 2nd`),2)
+         )
+
+t %>% 
+  knitr::kable(caption = 'Updating priors with new data.') 
+
+```
 
 **Hard**  
 
@@ -1148,23 +1216,113 @@ Now suppose you are managing a captive panda breeding program. You have a new fe
 of unknown species, and she has just given birth to twins. What is the probability that her next birth
 will also be twins?  
 
+```{r}
+p_a = 0.1
+p_b = 0.2
+
+likelihood <- c(p_a, p_b)
+prior <- c(1,1)
+posterior <- likelihood*prior
+posterior <- posterior/sum(posterior)
+posterior
+
+(posterior[1]*p_a) + (posterior[2]*p_b)
+
+```
+
+
 **2H2.** Recall all the facts from the problem above. Now compute the probability that the panda we
 have is from species A, assuming we have observed only the first birth and that it was twins.  
+
+```{r}
+# probability of species A
+p_a <- 0.5
+
+# probability of twins, given species A
+p_ta <- 0.1
+
+# probability of twins, given species B
+p_tb <- 0.2
+
+# probability of twins
+p_t <- (p_a * p_ta) + ((1 - p_a) * p_tb)
+
+# probability of species A, given twins (using Bayes' Theorem)
+# (note this is equivalent to `posterior[1]` above)
+p_at <- (p_ta * p_a) / p_t
+p_at
+```
+
 
 **2H3.** Continuing on from the previous problem, suppose the same panda mother has a second birth
 and that it is not twins, but a singleton infant. Compute the posterior probability that this panda is
 species A.  
 
+```{r}
+# probability of species A
+p_a <- 0.5
+
+# probability of singleton, given species A with prior of having twin
+p_sa <- 0.9*0.1
+
+# probability of singleton, given species B with prior of having twin
+p_sb <- 0.8*0.2
+
+# probability of singletons
+p_s <- (p_a * p_sa) + ((1 - p_a) * p_sb)
+
+# probability of species A, given singleton (using Bayes' Theorem)
+# (note this is equivalent to `posterior[1]` above)
+p_as <- (p_sa * p_a) / p_s
+p_as
+
+
+```
+
+
 **2H4.** A common boast of Bayesian statisticians is that Bayesian inference makes it easy to use all of
 the data, even if the data are of different types.
 So suppose now that a veterinarian comes along who has a new genetic test that she claims can
-identify the species of our mother panda. But the test, like all tests, is imperfect. This is the information you have about the test:
-• The probability it correctly identifies a species A panda is 0.8.
-• The probability it correctly identifies a species B panda is 0.65.
+identify the species of our mother panda. But the test, like all tests, is imperfect. This is the information you have about the test:  
+
+• The probability it correctly identifies a species A panda is 0.8.  
+
+• The probability it correctly identifies a species B panda is 0.65.  
+
 The vet administers the test to your panda and tells you that the test is positive for species A. First
 ignore your previous information from the births and compute the posterior probability that your
 panda is species A. Then redo your calculation, now using the birth data as well.
 
+```{r}
+
+#Pr(a|test) = Pr(a)*Pr(test|a)
+
+p_ta <- 0.8
+
+p_tb <- 0.65
+
+p_a <- 0.5
+
+top <- 0.8*0.5
+
+bottom <- (0.8*0.5) + (0.35*0.5)
+
+p_ap <- top/bottom
+
+# now add birth data
+
+a_likelihood <- 0.1 * (1 - 0.1)
+b_likelihood <- 0.2 * (1 - 0.2)
+
+# compute posterior probabilities, using test result as prior
+likelihood <- c(a_likelihood, b_likelihood)
+prior <- c(p_ap, (1 - p_ap))
+posterior <- likelihood * prior
+posterior <- posterior / sum(posterior)
+
+posterior[1]
+
+```
 
 
 

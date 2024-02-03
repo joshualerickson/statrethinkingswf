@@ -12,6 +12,10 @@ fig:figure-8
 fig:figure-9
 fig:figure-10
 fig:figure-11
+tab:unnamed-chunk-12
+tab:unnamed-chunk-13
+tab:unnamed-chunk-14
+tab:unnamed-chunk-15
 the-golem-of-prague
 small-worlds-and-large-worlds
 small-worlds-and-large-worlds-1
@@ -32,8 +36,7 @@ a-model-is-born
 making-the-model-go
 motors
 grid-approximation
-quadratic-approximation
+quad
 markov-chain-monte-carlo
 practice
 sampling-the-imaginary
-math-example
