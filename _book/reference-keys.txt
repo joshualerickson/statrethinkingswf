@@ -12,10 +12,11 @@ fig:figure-8
 fig:figure-9
 fig:figure-10
 fig:figure-11
-tab:unnamed-chunk-12
-tab:unnamed-chunk-13
-tab:unnamed-chunk-14
-tab:unnamed-chunk-15
+tab:unnamed-chunk-61
+tab:unnamed-chunk-62
+tab:unnamed-chunk-63
+tab:unnamed-chunk-64
+fig:figure-12
 the-golem-of-prague
 small-worlds-and-large-worlds
 small-worlds-and-large-worlds-1
@@ -40,3 +41,4 @@ quad
 markov-chain-monte-carlo
 practice
 sampling-the-imaginary
+sampling-from-a-grid-approximate-posterior

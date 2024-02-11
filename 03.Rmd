@@ -21,6 +21,135 @@ Pr_positive <- Pr_positive_stream*Pr_stream + Pr_positive_land*(1-Pr_stream)
 This results in a 39% chance that our positive result is a stream. This seems really counterintuitive! How can we have a model with 83.5% accuracy but when it returns a positive result there is only a 39% chance that result is correct. When the response you're trying to predict is rare, it makes it difficult to get all of the true cases due to the false positives. Play around with the numbers above and you'll see how the rareness of the condition makes it more unlikely you actually have a positive result. 
 
 
+```{r figure-12, echo=FALSE, fig.cap="Using Bayes' to calculate probability of stream being positive (y-axis) given a sequence of proportion of streams (x-axis)."}
+Pr_stream <- seq(0,1,0.01)
+
+tibble(
+  Pr_stream = Pr_stream,
+  Pr_positive_land = Pr_positive_land,
+  Pr_positive_stream = Pr_positive_stream,
+  Pr_positive = Pr_positive_stream*Pr_stream + Pr_positive_land*(1-Pr_stream),
+  Pr_stream_positive = (Pr_positive_stream*Pr_stream)/Pr_positive
+) %>% 
+  ggplot(aes(Pr_stream_positive, Pr_stream)) +
+  geom_line() 
+
+```
+
+
+
+:::{.b--gray .ba .bw2 .ma2 .pa4 .shadow-1}  
+
+There is a way to present the same problem that does make it more intuitive, however.
+Suppose that instead of reporting probabilities, as before, I tell you the following:  
+
+(1) In a watershed of 100,000 acres, 11,000 of them are streams.  
+
+(2) Of the 11,000 that are streams, 9,185 of them will test positive for a stream.  
+
+(3) Of the 89,000 acres, 14,240 will test positive for a stream.  
+
+Now tell me, if we test all 100,000 acres, what proportion that test positive for
+stream actually are streams? Many people, although certainly not all people, find this
+presentation a lot easier. Now we can just count up the number of streams that test positive:
+14240 + 9185 = 23425. Out of these 23425 positive tests, 9185 of them are real streams, so that
+implies:  
+$$
+\text{Pr(stream|positive)} = \frac{9185}{23425} \approx 0.087
+$$
+
+It’s exactly the same answer as before, but without a seemingly arbitrary rule.  
+
+-- @mcelreath2018statistical
+:::
+
+@mcelreath2018statistical comments on how this is a misleading teaching moment of Bayes', since these are merely frequencies and any statistician would arrive at Bayes' theorem to explain this. However, there is some thinking in human psychology that we might actually interpret frequencies or counts better because in the real world we don't ever _see_ a probability but everyone can see counts. Richard then prefaces the coming chapter of how we can use these realizations through sampling the posterior and counting. This helps tremendously when we have posteriors that might not be easy to do integral calculus with. In addition, with multiple parameters this issue becomes troublesome or even unattainable with traditional approaches.  
+
+## Sampling from a grid-approximate posterior  
+
+Here we start off with going back and sampling from the watershed and stream example.  
+
+```{r}
+p_grid <- seq( from=0 , to=1 , length.out=1000 )
+prob_p <- rep( 1 , 1000 )
+prob_data <- dbinom( 1 , size=9 , prob=p_grid )
+posterior <- prob_data * prob_p
+posterior <- posterior / sum(posterior)
+```
+
+Now we draw from this posterior, say 10,000 samples. Each sample we grab will have a proportion associated to the posterior probability. The more one sample is more likely the higher the proportion will be.  
+
+```{r}
+samples <- sample(p_grid, prob = posterior, size = 1e4, replace = TRUE)
+```
+
+
+```{r}
+plot(samples)
+dens(samples)
+```
+
+
+## Sampling to summarize  
+
+I love this intro by Richard, 'Once your model produces a posterior distribution, the model's work is done. But your work has just begun.' We now need to summarize and interpret our posterior distribution. This all depends too on your purpose:  
+
+* How much posterior probability lies below some parameter value?  
+
+* How much posterior probability lies between two parameter values?  
+
+* Which parameter value marks the lower 5% of the posterior probability?  
+
+* Which range of parameter values contains 90% of the posterior probability?  
+
+* Which parameter value has highest posterior probability?  
+
+
+@mcelreath2018statistical, breaks this up into three different questions about (1) intervals of _defined
+boundaries_, (2) questions about intervals of _defined probability mass_, and (3) questions about
+_point estimates_.  
+
+### Intervals of defined boundaries  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
