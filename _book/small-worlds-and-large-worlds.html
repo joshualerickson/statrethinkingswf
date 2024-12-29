@@ -80,7 +80,7 @@
 </h2>
 <p>A great distinction between the small and large world is the <em>small world</em> is the model itself and the <em>large world</em> is the world we hope to deploy in. This is the challenge of statistical modeling and is elevated by forgetting this distinction.</p>
 <p>In the small world there are no surprises and it is important to verify the logic, making sure that it performs as expected under favorable assumptions.</p>
-<p>The large world has events that were not expected or imagined in the small world, e.g. coupling of events, a 0 understanding is misleading, etc. This is essentially the modeling adage ‘all models are wrong, but some are useful.’ Just because the model in the small world makes logical sense doesn’t mean that it will be consistent in the large world. As Richard says, ‘But it is certainly a warm comfort.’</p>
+<p>The large world has events that were not expected or imagined in the small world, e.g. coupling of events, a 0 understanding is misleading, etc. This is essentially the modeling adage ‘all models are wrong, but some are useful’. Just because the model in the small world makes logical sense doesn’t mean that it will be consistent in the large world. As Richard says, ‘But it is certainly a warm comfort.’</p>
 <p>This chapter is where you’ll start building Bayesian models. Bayesian models learn from prior information and this is super helpful in the small world. If this assumptions are close to reality, then they are also great in the large world.</p>
 </div>
 <div id="garden-of-forking-paths" class="section level2" number="2.2">
@@ -201,6 +201,15 @@ Figure 2.2: Paths taken in the bucket of forking fish.
 <div class="inline-table"><table class="table table-sm">
 <caption>
 <span id="tab:table-2">Table 2.2: </span>Updating priors with new data.</caption>
+<colgroup>
+<col width="5%">
+<col width="5%">
+<col width="5%">
+<col width="5%">
+<col width="41%">
+<col width="19%">
+<col width="14%">
+</colgroup>
 <thead><tr class="header">
 <th align="left">p_1</th>
 <th align="left">p_2</th>
@@ -332,7 +341,7 @@ Figure 2.2: Paths taken in the bucket of forking fish.
 </tr>
 </tbody>
 </table></div>
-<p>You might be thinking is this a plausibility or <em>probability</em>? Exactly. It’s confusing but simply the plausibilites are the probabilities and come with all of the mathematical things in probability theory. <span class="citation"><a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">McElreath</a> (<a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">2018</a>)</span> then goes over the common names for things in probability theory:</p>
+<p>You might be thinking is this a plausibility or <em>probability</em>? Exactly. It’s confusing but simply the plausibilites are the probabilities and come with all of the mathematical things in probability theory. <span class="citation">McElreath (<a href="references.html#ref-mcelreath2018statistical">2018</a>)</span> then goes over the common names for things in probability theory:</p>
 <div class="b--gray ba bw2 ma2 pa4 shadow-1">
 <ul>
 <li>A conjectured proportion of bull trout (BT), <span class="math inline">\(p\)</span>, is usually called a <span style="text-transform: uppercase; color: #1d33cc;">parameter</span> value.
@@ -345,7 +354,7 @@ data.</li>
 <li>The new, updated plausibility of any specific <span class="math inline">\(p\)</span> is usually called the
 <span style="text-transform: uppercase; color: #1d33cc;">posterior probability</span>.</li>
 </ul>
-<p>– <span class="citation"><a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">McElreath</a> (<a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">2018</a>)</span></p>
+<p>– <span class="citation">McElreath (<a href="references.html#ref-mcelreath2018statistical">2018</a>)</span></p>
 </div>
 <p>The next section builds on this framework and helps bring it it together in a simple toy example.</p>
 </div>
@@ -354,8 +363,8 @@ data.</li>
 <h2>
 <span class="header-section-number">2.3</span> Building a Model<a class="anchor" aria-label="anchor" href="#building-a-model"><i class="fas fa-link"></i></a>
 </h2>
-<p>The globe problem always reminded me of a similar hydrology example with predicting headwater streams (<span class="citation"><a href="references.html#ref-erickson2023modeling" role="doc-biblioref">Erickson, Holden, and Efta</a> (<a href="references.html#ref-erickson2023modeling" role="doc-biblioref">2023</a>)</span>). We can look at the streams across the landscape similar to how we look at a tossing globe. Instead of trying to understand the proportion of water on the globe, we want to know the proportion of streams within a watershed.</p>
-<p>First we need to sample a <em>theoretical</em> stream network across a watershed and just like the globe if we get an observation on a stream or not we should be able to generate a posterior distribution. We’ll look at the National Hydrography Dataset Plus High Resolution (NHDPlus HR) raster in Northwest Montana and sample from this raster to get an idea for a proportion of land to water (<span class="citation"><a href="references.html#ref-blodgett2018nhdplustools" role="doc-biblioref">Blodgett and Johnson</a> (<a href="references.html#ref-blodgett2018nhdplustools" role="doc-biblioref">2018</a>)</span>). It’s not perfect but as you’ll see later on it starts to converge pretty quickly and give us a clearer picture of the likelihood.</p>
+<p>The globe problem always reminded me of a similar hydrology example with predicting headwater streams (<span class="citation">Erickson, Holden, and Efta (<a href="references.html#ref-erickson2023modeling">2023</a>)</span>). We can look at the streams across the landscape similar to how we look at a tossing globe. Instead of trying to understand the proportion of water on the globe, we want to know the proportion of streams within a watershed.</p>
+<p>First we need to sample a <em>theoretical</em> stream network across a watershed and just like the globe if we get an observation on a stream or not we should be able to generate a posterior distribution. We’ll look at the National Hydrography Dataset Plus High Resolution (NHDPlus HR) raster in Northwest Montana and sample from this raster to get an idea for a proportion of land to water (<span class="citation">Blodgett and Johnson (<a href="references.html#ref-blodgett2018nhdplustools">2018</a>)</span>). It’s not perfect but as you’ll see later on it starts to converge pretty quickly and give us a clearer picture of the likelihood.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://rspatial.org/">terra</a></span><span class="op">)</span>
 
@@ -377,7 +386,7 @@ Figure 2.3: Watershed with NHDPlus HR streams
 <li>
 <span style="color: #1d33cc;">Evaluate</span>: All statistical models require supervision, leading possibly to model revision.</li>
 </ol>
-<p>– <span class="citation"><a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">McElreath</a> (<a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">2018</a>)</span></p>
+<p>– <span class="citation">McElreath (<a href="references.html#ref-mcelreath2018statistical">2018</a>)</span></p>
 </div>
 <div id="a-data-story" class="section level3" number="2.3.1">
 <h3>
@@ -391,7 +400,7 @@ Figure 2.3: Watershed with NHDPlus HR streams
 It has a probability 1 − <span class="math inline">\(p\)</span> of producing a land (L) observation.</li>
 <li>Each random sample is independent of the others.</li>
 </ol>
-<p>– <span class="citation"><a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">McElreath</a> (<a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">2018</a>)</span></p>
+<p>– <span class="citation">McElreath (<a href="references.html#ref-mcelreath2018statistical">2018</a>)</span></p>
 </div>
 <p>It will be much easier though to see it in action and how each sample will update our model and our understanding of the data story. We’ll go through this in the next section.</p>
 </div>
@@ -469,13 +478,13 @@ This is super similar to the binomial because a Bernoulli is a special case of a
 <h4>
 <span class="header-section-number">2.4.2.2</span> Unobserved variables<a class="anchor" aria-label="anchor" href="#unobserved-variables"><i class="fas fa-link"></i></a>
 </h4>
-<p>Since <span class="math inline">\(p\)</span> is not observed we’ll call it a <span style="text-transform: uppercase; color: #1d33cc;">parameter</span> and even though we can’t observe we still need to define it somehow. We can think of parameters as questions we want to answer: what is the difference between means in groups, how strong are two variables associated, how much variation is in our measurements, etc. For each of these parameters, we’ll need to assign a <span style="text-transform: uppercase; color: #1d33cc;">prior</span>. Just like in the previous section where we gave the first prior a uniform distribution (equally likely) we’ll need to do the same as we build up other models. So you might be asking, “Why?”</p>
+<p>Since <span class="math inline">\(p\)</span> is not observed we’ll call it a <span style="text-transform: uppercase; color: #1d33cc;">parameter</span> and even though we can’t observe we still need to define it somehow. We can think of parameters as questions we want to answer: what is the difference between means in groups, how strong are two variables associated, how much variation is in our measurements, etc. For each of these parameters, we’ll need to assign a <span style="text-transform: uppercase; color: #1d33cc;">prior</span>. Just like in the previous section where we gave the first prior a uniform distribution (equally likely) we’ll need to do the same as we build up other models. So you might be asking, “Why?”.</p>
 <p>You can think of priors as ways to help the model learn (engineering assumptions) and imparting knowledge to reflect the phenomenon (scientific assumtions). Essentially, priors can be subjective and non-subjective but they follow similar workflows, e.g. analyze data using <em>prior</em> information. Priors are not permanent or law. They are assumptions so they should be treated like that, meaning to be challenged or explored!</p>
-<p><span class="citation"><a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">McElreath</a> (<a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">2018</a>)</span> goes into a nice distinction between parameter and data but he also provides this great summary of why we shouldn’t get too wrapped up in it within Bayesian analyis.</p>
+<p><span class="citation">McElreath (<a href="references.html#ref-mcelreath2018statistical">2018</a>)</span> goes into a nice distinction between parameter and data but he also provides this great summary of why we shouldn’t get too wrapped up in it within Bayesian analyis.</p>
 <div class="b--gray ba bw2 ma2 pa4 shadow-1">
 <p><strong>Rethinking: Datum or parameter?</strong> It is typical to conceive of data and parameters as completely different kinds of entities. Data are measured and known; parameters are unknown and must be estimated from data. Usefully, in the Bayesian framework the distinction between a datum and a parameter is not so fundamental. Sometimes we observe a variable, but sometimes we do not. In that case, the same distribution function applies, even though we didn’t observe the variable. As a result, the same assumption can look like a “likelihood” or a “prior,” depending upon context, without any change to the model. Much later in the book (Chapter 15), you’ll see how to exploit this deep identity between certainty (data) and uncertainty (parameters) to incorporate measurement error and missing
 data into your modeling.</p>
-<p>– <span class="citation"><a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">McElreath</a> (<a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">2018</a>)</span></p>
+<p>– <span class="citation">McElreath (<a href="references.html#ref-mcelreath2018statistical">2018</a>)</span></p>
 </div>
 </div>
 </div>
@@ -507,14 +516,14 @@ The joint probability of the data <span class="math inline">\(S\)</span> and <sp
 Pr(S, L, p) = Pr(S, L|p)Pr(p)
 \]</span>
 </center>
-<p>All this is saying is that the probability of <span class="math inline">\(S, L, p\)</span> is the product of the probability of <span class="math inline">\(Pr(S,L|p)\)</span> or <em>likelihood</em> times the prior probability <span class="math inline">\(p\)</span>. This is like saying the probability of rain and cold on same day is equal to the probability of rain, when it’s cold, times the probability that it’s cold (<span class="citation"><a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">McElreath</a> (<a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">2018</a>)</span>).</p>
+<p>All this is saying is that the probability of <span class="math inline">\(S, L, p\)</span> is the product of the probability of <span class="math inline">\(Pr(S,L|p)\)</span> or <em>likelihood</em> times the prior probability <span class="math inline">\(p\)</span>. This is like saying the probability of rain and cold on same day is equal to the probability of rain, when it’s cold, times the probability that it’s cold (<span class="citation">McElreath (<a href="references.html#ref-mcelreath2018statistical">2018</a>)</span>).</p>
 <p>But it’s also true to reverse that logic, e.g. reverse the <span class="math inline">\(p\)</span> on the <span class="math inline">\(rhs\)</span>.</p>
 <center>
 <span class="math display">\[
 Pr(S, L, p) = Pr(p|S, L)Pr(S,L)
 \]</span>
 </center>
-<p>Meaning that the probability of rain and cold on the same day is equal to probability of cold, when it’s raining, times the probability of rain (<span class="citation"><a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">McElreath</a> (<a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">2018</a>)</span>).</p>
+<p>Meaning that the probability of rain and cold on the same day is equal to probability of cold, when it’s raining, times the probability of rain (<span class="citation">McElreath (<a href="references.html#ref-mcelreath2018statistical">2018</a>)</span>).</p>
 <p>Now that these equations are equal, we can just set them equal to each other.</p>
 <center>
 <span class="math display">\[
@@ -531,12 +540,12 @@ Pr(p|S,L)=\frac{Pr(S, L|p)Pr(p)}{Pr(S,L)}
 <p><span class="math display">\[
 \text{Posterior}=\frac{\text{Probability of the data} \times \text{Prior}}{\text{Average probability of the data}}
 \]</span></p>
-<p>From <span class="citation"><a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">McElreath</a> (<a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">2018</a>)</span>, he talks about how the denominator of Bayes’ theorem is particularly confusing and can have different names (evidence, average likelihood) but is literally the <em>average</em> probability of the data. It’s meant to standardize the posterior by making sure the <span class="math inline">\(rhs\)</span> sums to one.</p>
+<p>From <span class="citation">McElreath (<a href="references.html#ref-mcelreath2018statistical">2018</a>)</span>, he talks about how the denominator of Bayes’ theorem is particularly confusing and can have different names (evidence, average likelihood) but is literally the <em>average</em> probability of the data. It’s meant to standardize the posterior by making sure the <span class="math inline">\(rhs\)</span> sums to one.</p>
 <p><span class="math display">\[
 Pr(W,L) = E\bigl(Pr(W,L|p)\big) = \int{Pr(W,L|p)Pr(p)dp}
 \]</span></p>
 <p>The key take away from the equation above is that the integral helps standardize the average probability so that the values sum to one. Remember in the forking path’s example we had <em>ways to produce</em> <span class="math inline">\(\times\)</span> <em>prior plausibility</em>, but until we divided by the sum of products we didn’t have a probability. Same thing goes for the any other estimate, continuous or discrete, we start with <em>likelihood</em> <span class="math inline">\(\times\)</span> <em>prior</em> but remember the likelihood and priors are just plausibilities which means it doesn’t necessarily need to be between zero and 1 (but it absolutely can be and will likely be)!</p>
-<p><span class="citation"><a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">McElreath</a> (<a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">2018</a>)</span> finishes up this section by showing in Figure <a href="small-worlds-and-large-worlds.html#fig:figure-5">2.5</a> how we can keep the likelihood the same but change the prior and the effect it has on the posterior varies.</p>
+<p><span class="citation">McElreath (<a href="references.html#ref-mcelreath2018statistical">2018</a>)</span> finishes up this section by showing in Figure <a href="small-worlds-and-large-worlds.html#fig:figure-5">2.5</a> how we can keep the likelihood the same but change the prior and the effect it has on the posterior varies.</p>
 <div class="figure">
 <span style="display:block;" id="fig:figure-5"></span>
 <img src="bookdown-demo_files/figure-html/figure-5-1.png" alt="Graph showing the posterior varying with choice of prior." width="576"><p class="caption">
@@ -547,7 +556,7 @@ Figure 2.5: Graph showing the posterior varying with choice of prior.
 <h3>
 <span class="header-section-number">2.5.1</span> Motors<a class="anchor" aria-label="anchor" href="#motors"><i class="fas fa-link"></i></a>
 </h3>
-<p>In this section, <span class="citation"><a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">McElreath</a> (<a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">2018</a>)</span> dives into the machine(s) that makes it possible to compute the posterior distribution, namely:</p>
+<p>In this section, <span class="citation">McElreath (<a href="references.html#ref-mcelreath2018statistical">2018</a>)</span> dives into the machine(s) that makes it possible to compute the posterior distribution, namely:</p>
 <ol style="list-style-type: decimal">
 <li>Grid approximation<br>
 </li>
@@ -563,7 +572,7 @@ Figure 2.5: Graph showing the posterior varying with choice of prior.
 </h3>
 <p>Deemed as one of the simplest sampling techniques is <span style="text-transform: uppercase; color: #1d33cc;">grid approximation</span>. The goal is to take a continuous grid (parameters) and only sample a finite grid of those values. This means that at any particular value of <span class="math inline">\(p'\)</span> we are going to multiply the likelihood and prior at that point. The machine will repeat this until it starts to get a clearer picture of the posterior distribution.</p>
 <p>This method comes with a cost though as it is really inefficient once you start scaling the problem up. But for now, it will be a great stepping stone to see the machine in action.</p>
-<p><span class="citation"><a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">McElreath</a> (<a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">2018</a>)</span> gives a <em>recipe</em> for grid approximation using our stream in watershed example.</p>
+<p><span class="citation">McElreath (<a href="references.html#ref-mcelreath2018statistical">2018</a>)</span> gives a <em>recipe</em> for grid approximation using our stream in watershed example.</p>
 <div class="b--gray ba bw2 ma2 pa4 shadow-1">
 <ol style="list-style-type: decimal">
 <li>Define the grid. This means you decide how many points to use in estimating the
@@ -574,7 +583,7 @@ posterior, and then you make a list of the parameter values on the grid.</li>
 prior by the likelihood.</li>
 <li>Finally, standardize the posterior, by dividing each value by the sum of all values.</li>
 </ol>
-<p>– <span class="citation"><a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">McElreath</a> (<a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">2018</a>)</span></p>
+<p>– <span class="citation">McElreath (<a href="references.html#ref-mcelreath2018statistical">2018</a>)</span></p>
 </div>
 <p>Below is some code to do the steps above:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
@@ -613,7 +622,7 @@ Figure 2.8: Showing the varying effect that the prior has on the posterior
 <span class="header-section-number">2.5.3</span> Quadratic approximation<a class="anchor" aria-label="anchor" href="#quad"><i class="fas fa-link"></i></a>
 </h3>
 <p>Due to the downfalls of grid approximation (scalability) there are other methods that we’ll want to learn as well. One useful approach is <span style="text-transform: uppercase; color: #1d33cc;">quadratic approximation</span>. If we look at <a href="small-worlds-and-large-worlds.html#fig:figure-7">2.7</a>, we can see that with a little imagination the posterior resembles a Gaussian (normal) shape. We’ll take advantage of this shape with our posterior and apply the Gaussian approximation aka quadratic. The logarithm of the Gaussain distribution forms a parabola and that parabola is a quadratic function. This can work really well in linear regression and is very efficient so we’ll use it at first in the following sections until we get more complex models. However, you’ll see real quickly how this approximation might break down after reading the first step.</p>
-<p><span class="citation"><a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">McElreath</a> (<a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">2018</a>)</span> lays out a couple steps when working with the quadratic approximation that we’ll dive into.</p>
+<p><span class="citation">McElreath (<a href="references.html#ref-mcelreath2018statistical">2018</a>)</span> lays out a couple steps when working with the quadratic approximation that we’ll dive into.</p>
 <div class="b--gray ba bw2 ma2 pa4 shadow-1">
 <ol style="list-style-type: decimal">
 <li>Find the posterior mode. This is usually accomplished by some optimization algorithm,
@@ -626,9 +635,9 @@ peak. This curvature is sufficient to compute a quadratic approximation of the
 entire posterior distribution. In some cases, these calculations can be done analytically,
 but usually your computer uses some numerical technique instead.</li>
 </ol>
-<p>– <span class="citation"><a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">McElreath</a> (<a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">2018</a>)</span></p>
+<p>– <span class="citation">McElreath (<a href="references.html#ref-mcelreath2018statistical">2018</a>)</span></p>
 </div>
-<p>Within the <code>rethinking</code> package, <span class="citation"><a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">McElreath</a> (<a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">2018</a>)</span> has a function <code>quap</code> that does this for us. We just need to provide the necessary information (data and params) and the function does the rest.</p>
+<p>Within the <code>rethinking</code> package, <span class="citation">McElreath (<a href="references.html#ref-mcelreath2018statistical">2018</a>)</span> has a function <code>quap</code> that does this for us. We just need to provide the necessary information (data and params) and the function does the rest.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">rethinking</span><span class="op">)</span>
 
@@ -658,7 +667,7 @@ Figure 2.9: Graph showing an analytical approach (beta distribution) with the ap
 Figure 2.10: As the samples increase, the approximation starts to reflect the true distribution.
 </p>
 </div>
-<p>Another great <em>Rethinking</em> section from <span class="citation"><a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">McElreath</a> (<a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">2018</a>)</span>, making you think about what we are doing in comparison to non-Bayesian parameter estimation.</p>
+<p>Another great <em>Rethinking</em> section from <span class="citation">McElreath (<a href="references.html#ref-mcelreath2018statistical">2018</a>)</span>, making you think about what we are doing in comparison to non-Bayesian parameter estimation.</p>
 <div class="b--gray ba bw2 ma2 pa4 shadow-1">
 <p><strong>Rethinking: Maximum likelihood estimation</strong>. The quadratic approximation, either with a uniform
 prior or with a lot of data, is often equivalent to a <span style="text-transform: uppercase; color: #1d33cc;">maximum likelihood estimate</span> (MLE) and its
@@ -666,7 +675,7 @@ prior or with a lot of data, is often equivalent to a <span style="text-transfor
 and a curse. It is a blessing, because it allows us to re-interpret a wide range of published non-Bayesian
 model fits in Bayesian terms. It is a curse, because maximum likelihood estimates have some curious
 drawbacks, and the quadratic approximation can share them. We’ll explore these in later chapters.</p>
-<p>– <span class="citation"><a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">McElreath</a> (<a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">2018</a>)</span></p>
+<p>– <span class="citation">McElreath (<a href="references.html#ref-mcelreath2018statistical">2018</a>)</span></p>
 </div>
 </div>
 <div id="markov-chain-monte-carlo" class="section level3" number="2.5.4">
@@ -674,7 +683,7 @@ drawbacks, and the quadratic approximation can share them. We’ll explore these
 <span class="header-section-number">2.5.4</span> Markov chain Monte Carlo<a class="anchor" aria-label="anchor" href="#markov-chain-monte-carlo"><i class="fas fa-link"></i></a>
 </h3>
 <p>The issues that we talked about before (time/efficiency, normality assumptions) rear their head when our models get more complex (mixed-effects models, maximizing the posterior). This is where <span style="text-transform: uppercase; color: #1d33cc;">markov chain monte carlo</span> (MCMC) comes in handy. MCMC is said to be a big part of the resurgence of Bayesian data analysis that began in the 1990’s.</p>
-<p>Instead of trying to approximate the posterior directly, MCMC samples from the posterior. This always reminding me of bootstrapping <span class="citation"><a href="references.html#ref-james2013introduction" role="doc-biblioref">James et al.</a> (<a href="references.html#ref-james2013introduction" role="doc-biblioref">2013</a>)</span> but we’ll dive into this more in Chapter 9 and see how different it is.</p>
+<p>Instead of trying to approximate the posterior directly, MCMC samples from the posterior. This always reminding me of bootstrapping <span class="citation">James et al. (<a href="references.html#ref-james2013introduction">2013</a>)</span> but we’ll dive into this more in Chapter 9 and see how different it is.</p>
 <p>Below is an example to wet the appetite for MCMC.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">n_samples</span> <span class="op">&lt;-</span> <span class="fl">1000</span>
@@ -748,9 +757,9 @@ with the declaration: “PROBABILITY DOES NOT EXIST.” The capitals appeared in
 I imagine de Finetti wanted us to shout this statement. What he meant is that probability is a device
 for describing uncertainty from the perspective of an observer with limited knowledge; it has no
 objective reality. Discuss the stream occurrence example from the chapter, in light of this statement. What
-does it mean to say “the probability of a stream is 0.11?”</p>
+does it mean to say “the probability of a stream is 0.11”?</p>
 <div class="b--gray ba bw2 ma2 pa4 shadow-1">
-<p>I take this to mean that the parameter (unobserved) estimated from data (observed) has a probability of 0.11, which is our belief or uncertainty about the the small world. It’s an important distinction that <span class="citation"><a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">McElreath</a> (<a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">2018</a>)</span> talks about with unobserved variables where the probability is not a reality but instead a parameter that we use data (information) to estimate with. This is contrary to frequentist statistics where probabilities are <em>frequencies</em> which are observed as objective properties of the physical world.</p>
+<p>I take this to mean that the parameter (unobserved) estimated from data (observed) has a probability of 0.11, which is our belief or uncertainty about the the small world. It’s an important distinction that <span class="citation">McElreath (<a href="references.html#ref-mcelreath2018statistical">2018</a>)</span> talks about with unobserved variables where the probability is not a reality but instead a parameter that we use data (information) to estimate with. This is contrary to frequentist statistics where probabilities are <em>frequencies</em> which are observed as objective properties of the physical world.</p>
 </div>
 <p><strong>Medium.</strong></p>
 <p><strong>2M1.</strong> Recall the globe tossing model from the chapter. Compute and plot the grid approximate
@@ -761,11 +770,11 @@ prior for p. </p>
 <li>L, L, L, S</li>
 <li>S, L, L, S, L, L, L</li>
 </ol>
-<div class="inline-figure"><img src="bookdown-demo_files/figure-html/unnamed-chunk-58-1.png" width="672"></div>
+<div class="inline-figure"><img src="bookdown-demo_files/figure-html/unnamed-chunk-9-1.png" width="672"></div>
 <p><strong>2M2.</strong> Now assume a prior for p that is equal to zero when p &gt; 0.5 and is a positive constant when
 p &lt;= 0.5. Again compute and plot the grid approximate posterior distribution for each of the sets of
 observations in the problem just above.</p>
-<div class="inline-figure"><img src="bookdown-demo_files/figure-html/unnamed-chunk-59-1.png" width="672"></div>
+<div class="inline-figure"><img src="bookdown-demo_files/figure-html/unnamed-chunk-10-1.png" width="672"></div>
 <p><strong>2M3.</strong> Suppose there are two watersheds, one in a humid region and one in an arid region. The humid watershed is 20% covered
 in streams. The arid watershed is 100% land. Further suppose that one of these watersheds—you don’t know
 which—was sampled and produced a “Land” observation. Assume that each watershed was equally
@@ -816,7 +825,7 @@ on the table).</p>
   <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span>caption <span class="op">=</span> <span class="st">'Updating priors with new data.'</span><span class="op">)</span> </code></pre></div>
 <div class="inline-table"><table class="table table-sm">
 <caption>
-<span id="tab:unnamed-chunk-61">Table 2.4: </span>Updating priors with new data.</caption>
+<span id="tab:unnamed-chunk-12">Table 2.4: </span>Updating priors with new data.</caption>
 <thead><tr class="header">
 <th align="left">p_1</th>
 <th align="left">p_2</th>
@@ -864,7 +873,7 @@ side is black.</p>
   <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span>caption <span class="op">=</span> <span class="st">'Updating priors with new data.'</span><span class="op">)</span> </code></pre></div>
 <div class="inline-table"><table class="table table-sm">
 <caption>
-<span id="tab:unnamed-chunk-62">Table 2.5: </span>Updating priors with new data.</caption>
+<span id="tab:unnamed-chunk-13">Table 2.5: </span>Updating priors with new data.</caption>
 <thead><tr class="header">
 <th align="left">p_1</th>
 <th align="left">p_2</th>
@@ -924,7 +933,7 @@ the probability the other side is black is now 0.5. Use the counting method, as 
   <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span>caption <span class="op">=</span> <span class="st">'Updating priors with new data.'</span><span class="op">)</span> </code></pre></div>
 <div class="inline-table"><table class="table table-sm">
 <caption>
-<span id="tab:unnamed-chunk-63">Table 2.6: </span>Updating priors with new data.</caption>
+<span id="tab:unnamed-chunk-14">Table 2.6: </span>Updating priors with new data.</caption>
 <thead><tr class="header">
 <th align="left">p_1</th>
 <th align="left">p_2</th>
@@ -976,7 +985,7 @@ first card.</p>
   <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span>caption <span class="op">=</span> <span class="st">'Updating priors with new data.'</span><span class="op">)</span> </code></pre></div>
 <div class="inline-table"><table class="table table-sm">
 <caption>
-<span id="tab:unnamed-chunk-64">Table 2.7: </span>Updating priors with new data.</caption>
+<span id="tab:unnamed-chunk-15">Table 2.7: </span>Updating priors with new data.</caption>
 <thead><tr class="header">
 <th align="left">p_1</th>
 <th align="left">p_2</th>
@@ -1179,7 +1188,7 @@ panda is species A. Then redo your calculation, now using the birth data as well
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>Statistical Rethinking for Soil, Water, and Fish</strong>" was written by Josh Erickson. It was last built on 2024-02-11.</p>
+    <p>"<strong>Statistical Rethinking for Soil, Water, and Fish</strong>" was written by Josh Erickson. It was last built on 2024-07-21.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

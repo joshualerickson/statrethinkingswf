@@ -63,8 +63,8 @@ d %>%
   ggplot(aes(x, possibility)) +
   geom_point_svg(aes(x, possibility, svg = fill), 
                  size = 25) + 
-  scale_svg_discrete_manual(
-    aesthetics = 'svg', 
+  scale_svg_fill_manual(
+    aesthetics = 'svg',
     values = c(`Bull Trout` = svg_text, `Rainbow Trout` = svg_text2),
     guide = guide_legend(override.aes = list(size = 20))
   ) +
@@ -74,7 +74,7 @@ d %>%
     labs(fill = '', svg = 'Fish Type', title = 'Different Possibilities of Fish in the Bucket') 
 ```
 
-We want to figure out what conjecture is most plausible, given the evidence about the samples. Let's say that in the first 3 samples (with replacement) you get: Bull Trout, Rainbow Trout, Bull Trout (BT, RB, BT). Then what is the most plausible configuration in the bucket? Let's consider one example; `p2` (possibility #2) from Figure \@ref(fig:figure-1) (BT, RB, RB, RB). This is where the forking paths comes in handy because we can count the ways that this possibility can happen (Figure \@ref(fig:figure-2)), i.e. possibility meaning there is 3 RB and 1 BT in the bucket. 
+We want to figure out what conjecture is most plausible, given the evidence about the samples. Let's say that in the first 3 samples (with replacement) you get: Bull Trout, Rainbow Trout, Bull Trout (BT, RB, BT). Then what is the most plausible configuration in the stream? Let's consider one example; `p2` (possibility #2) from Figure \@ref(fig:figure-1) (BT, RB, RB, RB). This is where the forking paths comes in handy because we can count the ways that this possibility can happen (Figure \@ref(fig:figure-2)), i.e. possibility meaning there is 3 RB and 1 BT in the bucket. 
 
 ```{r figure-2, fig.cap="Paths taken in the bucket of forking fish.", echo = F}
   d <-tibble(position = c((1:4^1) / 4^0, 

@@ -74,8 +74,21 @@
 <h1>
 <span class="header-section-number">3</span> Sampling the Imaginary<a class="anchor" aria-label="anchor" href="#sampling-the-imaginary"><i class="fas fa-link"></i></a>
 </h1>
-<p><span class="citation"><a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">McElreath</a> (<a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">2018</a>)</span> starts this chapter off with a classic example of Bayes’ theorem and how it can be confusing for people to come to the right probability when given a result from a model or test for example. He uses an example with vampires but we’ll stick with the soil, water and fish theme and build on our stream proportion model. From <span class="citation"><a href="references.html#ref-erickson2023modeling" role="doc-biblioref">Erickson, Holden, and Efta</a> (<a href="references.html#ref-erickson2023modeling" role="doc-biblioref">2023</a>)</span>, we’ll use the results from the Topoclimatic model.</p>
-<p>So, for the models accuracy we get 83.5% or <span class="math inline">\(\text{Pr(positive model result|stream)} = 0.835\)</span>. It’s a decent test and does a good job at predicting headwater streams but it makes mistakes, which we’ll call false positives. The false positive rate of the model is <span class="math inline">\(\text{Pr(positive test result|land)} = 0.16\)</span>. The final bit of information that we have is the proportion of streams across the landscape <span class="math inline">\(\text{Pr(stream)} = 0.11\)</span>, which we generated in Chapter <a href="small-worlds-and-large-worlds.html#quad">2.5.3</a> with quadratic approximation.</p>
+<p><span class="citation">McElreath (<a href="references.html#ref-mcelreath2018statistical">2018</a>)</span> starts this chapter off with a classic example
+of Bayes’ theorem and how it can be confusing for people to come to the
+right probability when given a result from a model or test for example.
+He uses an example with vampires but we’ll stick with the soil, water
+and fish theme and build on our stream proportion model. From
+<span class="citation">Erickson, Holden, and Efta (<a href="references.html#ref-erickson2023modeling">2023</a>)</span>, we’ll use the results from the Topoclimatic
+model.</p>
+<p>So, for the models accuracy we get 83.5% or
+<span class="math inline">\(\text{Pr(positive model result|stream)} = 0.835\)</span>. It’s a decent test
+and does a good job at predicting headwater streams but it makes
+mistakes, which we’ll call false positives. The false positive rate of
+the model is <span class="math inline">\(\text{Pr(positive test result|land)} = 0.16\)</span>. The final
+bit of information that we have is the proportion of streams across the
+landscape <span class="math inline">\(\text{Pr(stream)} = 0.11\)</span>, which we generated in Chapter
+<a href="small-worlds-and-large-worlds.html#quad">2.5.3</a> with quadratic approximation.</p>
 <p>Now we can produce Bayes’ theorem,</p>
 <p><span class="math display">\[
 \text{Pr(stream|positive)} = \frac{\text{Pr(positive|stream)}\times\text{Pr(stream)}}{\text{Pr(positive)}}
@@ -88,7 +101,14 @@
 
 <span class="op">(</span><span class="va">Pr_stream_positive</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">Pr_positive_stream</span><span class="op">*</span><span class="va">Pr_stream</span><span class="op">)</span><span class="op">/</span><span class="va">Pr_positive</span><span class="op">)</span></code></pre></div>
 <pre><code>## [1] 0.3921025</code></pre>
-<p>This results in a 39% chance that our positive result is a stream. This seems really counterintuitive! How can we have a model with 83.5% accuracy but when it returns a positive result there is only a 39% chance that result is correct. When the response you’re trying to predict is rare, it makes it difficult to get all of the true cases due to the false positives. Play around with the numbers above and you’ll see how the rareness of the condition makes it more unlikely you actually have a positive result.</p>
+<p>This results in a 39% chance that our positive result is a stream. This
+seems really counterintuitive! How can we have a model with 83.5%
+accuracy but when it returns a positive result there is only a 39%
+chance that result is correct. When the response you’re trying to
+predict is rare, it makes it difficult to get all of the true cases due
+to the false positives. Play around with the numbers above and you’ll
+see how the rareness of the condition makes it more unlikely you
+actually have a positive result.</p>
 <div class="figure">
 <span style="display:block;" id="fig:figure-12"></span>
 <img src="bookdown-demo_files/figure-html/figure-12-1.png" alt="Using Bayes' to calculate probability of stream being positive (y-axis) given a sequence of proportion of streams (x-axis)." width="672"><p class="caption">
@@ -96,46 +116,175 @@ Figure 3.1: Using Bayes’ to calculate probability of stream being positive (y-
 </p>
 </div>
 <div class="b--gray ba bw2 ma2 pa4 shadow-1">
-<p>There is a way to present the same problem that does make it more intuitive, however.
-Suppose that instead of reporting probabilities, as before, I tell you the following:</p>
+<p>There is a way to present the same problem that does make it more
+intuitive, however. Suppose that instead of reporting probabilities, as
+before, I tell you the following:</p>
 <ol style="list-style-type: decimal">
 <li><p>In a watershed of 100,000 acres, 11,000 of them are streams.</p></li>
-<li><p>Of the 11,000 that are streams, 9,185 of them will test positive for a stream.</p></li>
+<li><p>Of the 11,000 that are streams, 9,185 of them will test positive for
+a stream.</p></li>
 <li><p>Of the 89,000 acres, 14,240 will test positive for a stream.</p></li>
 </ol>
-<p>Now tell me, if we test all 100,000 acres, what proportion that test positive for
-stream actually are streams? Many people, although certainly not all people, find this
-presentation a lot easier. Now we can just count up the number of streams that test positive:
-14240 + 9185 = 23425. Out of these 23425 positive tests, 9185 of them are real streams, so that
-implies:<br><span class="math display">\[
+<p>Now tell me, if we test all 100,000 acres, what proportion that test
+positive for stream actually are streams? Many people, although
+certainly not all people, find this presentation a lot easier. Now we
+can just count up the number of streams that test positive: 14240 + 9185
+= 23425. Out of these 23425 positive tests, 9185 of them are real
+streams, so that implies:<br><span class="math display">\[
 \text{Pr(stream|positive)} = \frac{9185}{23425} \approx 0.087
 \]</span></p>
-<p>It’s exactly the same answer as before, but without a seemingly arbitrary rule.</p>
-<p>– <span class="citation"><a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">McElreath</a> (<a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">2018</a>)</span></p>
+<p>It’s exactly the same answer as before, but without a seemingly
+arbitrary rule.</p>
+<p>– <span class="citation">McElreath (<a href="references.html#ref-mcelreath2018statistical">2018</a>)</span></p>
 </div>
-<p><span class="citation"><a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">McElreath</a> (<a href="references.html#ref-mcelreath2018statistical" role="doc-biblioref">2018</a>)</span> comments on how this is a misleading teaching moment of Bayes’, since these are merely frequencies and any statistician would arrive at Bayes’ theorem to explain this. However, there is some thinking in human psychology that we might actually interpret frequencies or counts better because in the real world we don’t ever <em>see</em> a probability but everyone can see counts. Richard then prefaces the coming chapter of how we can use these realizations through sampling the posterior and counting. This helps tremendously when we have posteriors that might not be easy to do integral calculus with. In addition, with multiple parameters this issue becomes troublesome or even unattainable with traditional approaches.</p>
+<p><span class="citation">McElreath (<a href="references.html#ref-mcelreath2018statistical">2018</a>)</span> comments on how this is a misleading teaching
+moment of Bayes’, since these are merely frequencies and any
+statistician would arrive at Bayes’ theorem to explain this. However,
+there is some thinking in human psychology that we might actually
+interpret frequencies or counts better because in the real world we
+don’t ever <em>see</em> a probability but everyone can see counts. Richard then
+prefaces the coming chapter of how we can use these realizations through
+sampling the posterior and counting. This helps tremendously when we
+have posteriors that might not be easy to do integral calculus with. In
+addition, with multiple parameters this issue becomes troublesome or
+even unattainable with traditional approaches.</p>
 <div id="sampling-from-a-grid-approximate-posterior" class="section level2" number="3.1">
 <h2>
 <span class="header-section-number">3.1</span> Sampling from a grid-approximate posterior<a class="anchor" aria-label="anchor" href="#sampling-from-a-grid-approximate-posterior"><i class="fas fa-link"></i></a>
 </h2>
-<p>Here we start off with going back and sampling from the watershed and stream example.</p>
+<p>Here we start off with going back and sampling from the watershed and
+stream example.</p>
 <div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">p_grid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span> from<span class="op">=</span><span class="fl">0</span> , to<span class="op">=</span><span class="fl">1</span> , length.out<span class="op">=</span><span class="fl">1000</span> <span class="op">)</span>
 <span class="va">prob_p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/rep.html">rep</a></span><span class="op">(</span> <span class="fl">1</span> , <span class="fl">1000</span> <span class="op">)</span>
 <span class="va">prob_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html">dbinom</a></span><span class="op">(</span> <span class="fl">1</span> , size<span class="op">=</span><span class="fl">9</span> , prob<span class="op">=</span><span class="va">p_grid</span> <span class="op">)</span>
 <span class="va">posterior</span> <span class="op">&lt;-</span> <span class="va">prob_data</span> <span class="op">*</span> <span class="va">prob_p</span>
 <span class="va">posterior</span> <span class="op">&lt;-</span> <span class="va">posterior</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/pkg/terra/man/summarize-generics.html">sum</a></span><span class="op">(</span><span class="va">posterior</span><span class="op">)</span></code></pre></div>
-<p>Now we draw from this posterior, say 10,000 samples. Each sample we grab will have a proportion associated to the posterior probability. The more one sample is more likely the higher the proportion will be.</p>
+<p>Now we draw from this posterior, say 10,000 samples. Each sample we grab
+will have a proportion associated to the posterior probability. The more
+one sample is more likely the higher the proportion will be.</p>
 <div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">samples</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mc-stan.org/cmdstanr/reference/model-method-sample.html">sample</a></span><span class="op">(</span><span class="va">p_grid</span>, prob <span class="op">=</span> <span class="va">posterior</span>, size <span class="op">=</span> <span class="fl">1e4</span>, replace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></code></pre></div>
 <div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">samples</span><span class="op">)</span></code></pre></div>
-<div class="inline-figure"><img src="bookdown-demo_files/figure-html/unnamed-chunk-72-1.png" width="672"></div>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">samples</span><span class="op">)</span></code></pre></div>
+<div class="inline-figure"><img src="bookdown-demo_files/figure-html/unnamed-chunk-23-1.png" width="672"></div>
 <div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/rethinking/man/dens.html">dens</a></span><span class="op">(</span><span class="va">samples</span><span class="op">)</span></code></pre></div>
-<div class="inline-figure"><img src="bookdown-demo_files/figure-html/unnamed-chunk-72-2.png" width="672"></div>
-<div class="inline-figure"><img src="bookdown-demo_files/figure-html/unnamed-chunk-73-1.png" width="672"></div>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/rethinking/man/dens.html">dens</a></span><span class="op">(</span><span class="va">samples</span><span class="op">)</span></code></pre></div>
+<div class="inline-figure"><img src="bookdown-demo_files/figure-html/unnamed-chunk-23-2.png" width="672"></div>
+</div>
+<div id="sampling-to-summarize" class="section level2" number="3.2">
+<h2>
+<span class="header-section-number">3.2</span> Sampling to summarize<a class="anchor" aria-label="anchor" href="#sampling-to-summarize"><i class="fas fa-link"></i></a>
+</h2>
+<p>I love this intro by Richard, ‘Once your model produces a posterior
+distribution, the model’s work is done. But your work has just begun.’
+We now need to summarize and interpret our posterior distribution. This
+all depends too on your purpose:</p>
+<ul>
+<li><p>How much posterior probability lies below some parameter value?</p></li>
+<li><p>How much posterior probability lies between two parameter values?</p></li>
+<li><p>Which parameter value marks the lower 5% of the posterior
+probability?</p></li>
+<li><p>Which range of parameter values contains 90% of the posterior
+probability?</p></li>
+<li><p>Which parameter value has highest posterior probability?</p></li>
+</ul>
+<p><span class="citation">McElreath (<a href="references.html#ref-mcelreath2018statistical">2018</a>)</span>, breaks this up into three different questions
+about (1) intervals of <em>defined boundaries</em>, (2) questions about
+intervals of <em>defined probability mass</em>, and (3) questions about <em>point
+estimates</em>.</p>
+<div id="intervals-of-defined-boundaries" class="section level3" number="3.2.1">
+<h3>
+<span class="header-section-number">3.2.1</span> Intervals of defined boundaries<a class="anchor" aria-label="anchor" href="#intervals-of-defined-boundaries"><i class="fas fa-link"></i></a>
+</h3>
+<p>Here we’ll start going over the real reason you started learning about
+posteriors in the first place. What’s going on between a defined
+boundary.</p>
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/terra/man/summarize-generics.html">sum</a></span><span class="op">(</span><span class="va">posterior</span><span class="op">[</span><span class="va">p_grid</span> <span class="op">&lt;</span> <span class="fl">0.5</span><span class="op">]</span><span class="op">)</span></code></pre></div>
+<pre><code>## [1] 0.9892578</code></pre>
+<p>So this is really high! About 99% of the posterior lies below 0.5, which
+is what we’d expect in this area of the world. This couldn’t be easier
+as Richard points out but as he alludes to this will get more complex
+with increasing parameters.</p>
+<p>A way to make this more accessible is to use the samples that we
+generated from above. Then just remember to divide by the total, which
+is finding the frequency of parameter values below 0.5.</p>
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/terra/man/summarize-generics.html">sum</a></span><span class="op">(</span><span class="va">samples</span> <span class="op">&lt;</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">/</span> <span class="fl">1e4</span></code></pre></div>
+<pre><code>## [1] 0.9906</code></pre>
+<p>As you can see, almost exactly the same! Not too shabby. Now check and
+see using an interval other than 0 to 0.5.</p>
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/terra/man/summarize-generics.html">sum</a></span><span class="op">(</span><span class="va">samples</span> <span class="op">&lt;</span> <span class="fl">0.3</span> <span class="op">&amp;</span> <span class="va">samples</span> <span class="op">&gt;</span> <span class="fl">0.1</span><span class="op">)</span><span class="op">/</span><span class="fl">1e4</span></code></pre></div>
+<pre><code>## [1] 0.5977</code></pre>
+<p>So about 60% are in between 0.1 and 0.3.</p>
+</div>
+<div id="intervals-of-defined-mass" class="section level3" number="3.2.2">
+<h3>
+<span class="header-section-number">3.2.2</span> Intervals of defined mass<a class="anchor" aria-label="anchor" href="#intervals-of-defined-mass"><i class="fas fa-link"></i></a>
+</h3>
+<p>In this section Richard goes over the confusion behind
+<span style="text-transform: uppercase; color: #1d33cc;">confidence interals</span> and
+<span style="text-transform: uppercase; color: #1d33cc;">credible intervals</span>. To lessen the confusion, Richard
+proposes to call them <span style="text-transform: uppercase; color: #1d33cc;">compatibility intervals</span> instead.
+The posterior intervals contain within them a probability mass. Again,
+in this example it is a lot easier to use the samples than the grid
+approximation.</p>
+<p>Using the <code><a href="https://rdrr.io/r/stats/quantile.html">quantile()</a></code> makes this relatively easy in R. Below we can
+look at the middle 80% interval. We can also see below how the
+tailedness of the distribution is bounded on the left and fat on the
+right. This effects our interpretation because we are assuming equal
+tails. This is totally fine and is a great way to communicate the shape
+of the distribution but as long as the distribution is not asymetrical.</p>
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/stats/quantile.html">quantile</a></span><span class="op">(</span><span class="va">samples</span>, <span class="fu"><a href="https://rdrr.io/pkg/terra/man/c.html">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.9</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<pre><code>##        10%        90% 
+## 0.05705706 0.33933934</code></pre>
+<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/density.html">density</a></span><span class="op">(</span><span class="va">samples</span><span class="op">)</span>
+<span class="va">d_between</span> <span class="op">&lt;-</span> <span class="fu">tibble</span><span class="op">(</span>x <span class="op">=</span> <span class="va">d</span><span class="op">$</span><span class="va">x</span><span class="op">[</span><span class="va">d</span><span class="op">$</span><span class="va">x</span> <span class="op">&gt;</span> <span class="fu"><a href="https://rdrr.io/r/stats/quantile.html">quantile</a></span><span class="op">(</span><span class="va">samples</span>, <span class="fl">0.1</span><span class="op">)</span> <span class="op">&amp;</span> <span class="va">d</span><span class="op">$</span><span class="va">x</span> <span class="op">&lt;</span> <span class="fu"><a href="https://rdrr.io/r/stats/quantile.html">quantile</a></span><span class="op">(</span><span class="va">samples</span>, <span class="fl">0.9</span><span class="op">)</span><span class="op">]</span>,
+                    y <span class="op">=</span> <span class="va">d</span><span class="op">$</span><span class="va">y</span><span class="op">[</span><span class="va">d</span><span class="op">$</span><span class="va">x</span> <span class="op">&gt;</span> <span class="fu"><a href="https://rdrr.io/r/stats/quantile.html">quantile</a></span><span class="op">(</span><span class="va">samples</span>, <span class="fl">0.1</span><span class="op">)</span> <span class="op">&amp;</span> <span class="va">d</span><span class="op">$</span><span class="va">x</span> <span class="op">&lt;</span> <span class="fu"><a href="https://rdrr.io/r/stats/quantile.html">quantile</a></span><span class="op">(</span><span class="va">samples</span>, <span class="fl">0.9</span><span class="op">)</span><span class="op">]</span><span class="op">)</span>
 
+<span class="fu">ggplot</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> 
+  <span class="fu">geom_area</span><span class="op">(</span>data <span class="op">=</span> <span class="va">d_between</span>, <span class="fu">aes</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span><span class="op">)</span>, alpha <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu">geom_line</span><span class="op">(</span>data <span class="op">=</span> <span class="fu">tibble</span><span class="op">(</span>x <span class="op">=</span> <span class="va">d</span><span class="op">$</span><span class="va">x</span>, y <span class="op">=</span> <span class="va">d</span><span class="op">$</span><span class="va">y</span><span class="op">)</span>, <span class="fu">aes</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span><span class="op">)</span>, linewidth <span class="op">=</span> <span class="fl">1.5</span>,color <span class="op">=</span> <span class="st">'red'</span><span class="op">)</span> </code></pre></div>
+<div class="inline-figure"><img src="bookdown-demo_files/figure-html/unnamed-chunk-27-1.png" width="672"></div>
+<p>Richard provides some handy function in the <code>rethinking</code> package like
+<code><a href="https://rdrr.io/pkg/rethinking/man/HPDI.html">PI()</a></code> and <code>HDPI</code>. <code><a href="https://rdrr.io/pkg/rethinking/man/HPDI.html">PI()</a></code> calculates the
+<span style="text-transform: uppercase; color: #1d33cc;">percentile intervals</span> using the <code><a href="https://rdrr.io/r/stats/quantile.html">quantile()</a></code> and
+assigning equal mass to the tails. Like we saw before, this isn’t too
+big of a deal when the distribution is symmetrical but when it is skewed
+it becomes more of an issue because it will leave out values that are
+more probable!</p>
+<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/rethinking/man/HPDI.html">PI</a></span><span class="op">(</span><span class="va">samples</span>, prob <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></code></pre></div>
+<pre><code>##       25%       75% 
+## 0.0980981 0.2442442</code></pre>
+<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/rethinking/man/HPDI.html">HPDI</a></span><span class="op">(</span><span class="va">samples</span>, prob <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></code></pre></div>
+<pre><code>##       |0.5       0.5| 
+## 0.05805806 0.19019019</code></pre>
+<p>Great one liner from Richard on the 95% CI convention, ‘So what are you
+supposed to do then? There is no consensus, but thinking is always a
+good idea.’ He then covers the pros and cons of HPDI but ultimately
+wants you to think about what you are trying to <em>estimate</em>.</p>
+<p>Richard then goes over the classic misinterpretation of a confidence
+interval and how most people find this to be really confusing. An
+important point he brings up is that we should be careful about the use
+of the word <em>true</em> when it comes to confidence intervals. This is just a
+model from the small world, right!?</p>
+<div class="inline-figure"><img src="bookdown-demo_files/figure-html/unnamed-chunk-29-1.png" width="672"></div>
+</div>
+<div id="point-estimates" class="section level3" number="3.2.3">
+<h3>
+<span class="header-section-number">3.2.3</span> Point estimates<a class="anchor" aria-label="anchor" href="#point-estimates"><i class="fas fa-link"></i></a>
+</h3>
+<p>This is always the hard part, what value should you report? This is
+confusing since we want to communicate the entire posterior
+distribution, but people want a single number or a cutoff.</p>
+
+</div>
 </div>
 </div>
   <div class="chapter-nav">
@@ -158,6 +307,13 @@ implies:<br><span class="math display">\[
       <ul class="nav navbar-nav">
 <li><a class="nav-link" href="#sampling-the-imaginary"><span class="header-section-number">3</span> Sampling the Imaginary</a></li>
 <li><a class="nav-link" href="#sampling-from-a-grid-approximate-posterior"><span class="header-section-number">3.1</span> Sampling from a grid-approximate posterior</a></li>
+<li>
+<a class="nav-link" href="#sampling-to-summarize"><span class="header-section-number">3.2</span> Sampling to summarize</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#intervals-of-defined-boundaries"><span class="header-section-number">3.2.1</span> Intervals of defined boundaries</a></li>
+<li><a class="nav-link" href="#intervals-of-defined-mass"><span class="header-section-number">3.2.2</span> Intervals of defined mass</a></li>
+<li><a class="nav-link" href="#point-estimates"><span class="header-section-number">3.2.3</span> Point estimates</a></li>
+</ul>
+</li>
 </ul>
 
       <div class="book-extra">
@@ -175,7 +331,7 @@ implies:<br><span class="math display">\[
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>Statistical Rethinking for Soil, Water, and Fish</strong>" was written by Josh Erickson. It was last built on 2024-02-11.</p>
+    <p>"<strong>Statistical Rethinking for Soil, Water, and Fish</strong>" was written by Josh Erickson. It was last built on 2024-07-21.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

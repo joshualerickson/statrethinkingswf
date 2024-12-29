@@ -1,8 +1,27 @@
+---
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
 # Sampling the Imaginary
 
-@mcelreath2018statistical starts this chapter off with a classic example of Bayes' theorem and how it can be confusing for people to come to the right probability when given a result from a model or test for example. He uses an example with vampires but we'll stick with the soil, water and fish theme and build on our stream proportion model. From @erickson2023modeling, we'll use the results from the Topoclimatic model.  
+@mcelreath2018statistical starts this chapter off with a classic example
+of Bayes' theorem and how it can be confusing for people to come to the
+right probability when given a result from a model or test for example.
+He uses an example with vampires but we'll stick with the soil, water
+and fish theme and build on our stream proportion model. From
+@erickson2023modeling, we'll use the results from the Topoclimatic
+model.
 
-So, for the models accuracy we get 83.5% or $\text{Pr(positive model result|stream)} = 0.835$. It's a decent test and does a good job at predicting headwater streams but it makes mistakes, which we'll call false positives. The false positive rate of the model is $\text{Pr(positive test result|land)} = 0.16$. The final bit of information that we have is the proportion of streams across the landscape $\text{Pr(stream)} = 0.11$, which we generated in Chapter \@ref(quad) with quadratic approximation.  
+So, for the models accuracy we get 83.5% or
+$\text{Pr(positive model result|stream)} = 0.835$. It's a decent test
+and does a good job at predicting headwater streams but it makes
+mistakes, which we'll call false positives. The false positive rate of
+the model is $\text{Pr(positive test result|land)} = 0.16$. The final
+bit of information that we have is the proportion of streams across the
+landscape $\text{Pr(stream)} = 0.11$, which we generated in Chapter
+\@ref(quad) with quadratic approximation.
 
 Now we can produce Bayes' theorem,
 
@@ -18,8 +37,15 @@ Pr_positive <- Pr_positive_stream*Pr_stream + Pr_positive_land*(1-Pr_stream)
 
 (Pr_stream_positive <- (Pr_positive_stream*Pr_stream)/Pr_positive)
 ```
-This results in a 39% chance that our positive result is a stream. This seems really counterintuitive! How can we have a model with 83.5% accuracy but when it returns a positive result there is only a 39% chance that result is correct. When the response you're trying to predict is rare, it makes it difficult to get all of the true cases due to the false positives. Play around with the numbers above and you'll see how the rareness of the condition makes it more unlikely you actually have a positive result. 
 
+This results in a 39% chance that our positive result is a stream. This
+seems really counterintuitive! How can we have a model with 83.5%
+accuracy but when it returns a positive result there is only a 39%
+chance that result is correct. When the response you're trying to
+predict is rare, it makes it difficult to get all of the true cases due
+to the false positives. Play around with the numbers above and you'll
+see how the rareness of the condition makes it more unlikely you
+actually have a positive result.
 
 ```{r figure-12, echo=FALSE, fig.cap="Using Bayes' to calculate probability of stream being positive (y-axis) given a sequence of proportion of streams (x-axis)."}
 Pr_stream <- seq(0,1,0.01)
@@ -36,38 +62,50 @@ tibble(
 
 ```
 
+::: {.b--gray .ba .bw2 .ma2 .pa4 .shadow-1}
+There is a way to present the same problem that does make it more
+intuitive, however. Suppose that instead of reporting probabilities, as
+before, I tell you the following:
 
+(1) In a watershed of 100,000 acres, 11,000 of them are streams.
 
-:::{.b--gray .ba .bw2 .ma2 .pa4 .shadow-1}  
+(2) Of the 11,000 that are streams, 9,185 of them will test positive for
+    a stream.
 
-There is a way to present the same problem that does make it more intuitive, however.
-Suppose that instead of reporting probabilities, as before, I tell you the following:  
+(3) Of the 89,000 acres, 14,240 will test positive for a stream.
 
-(1) In a watershed of 100,000 acres, 11,000 of them are streams.  
-
-(2) Of the 11,000 that are streams, 9,185 of them will test positive for a stream.  
-
-(3) Of the 89,000 acres, 14,240 will test positive for a stream.  
-
-Now tell me, if we test all 100,000 acres, what proportion that test positive for
-stream actually are streams? Many people, although certainly not all people, find this
-presentation a lot easier. Now we can just count up the number of streams that test positive:
-14240 + 9185 = 23425. Out of these 23425 positive tests, 9185 of them are real streams, so that
-implies:  
+Now tell me, if we test all 100,000 acres, what proportion that test
+positive for stream actually are streams? Many people, although
+certainly not all people, find this presentation a lot easier. Now we
+can just count up the number of streams that test positive: 14240 + 9185
+= 23425. Out of these 23425 positive tests, 9185 of them are real
+streams, so that implies:\
 $$
 \text{Pr(stream|positive)} = \frac{9185}{23425} \approx 0.087
 $$
 
-It’s exactly the same answer as before, but without a seemingly arbitrary rule.  
+It’s exactly the same answer as before, but without a seemingly
+arbitrary rule.
 
 -- @mcelreath2018statistical
 :::
 
-@mcelreath2018statistical comments on how this is a misleading teaching moment of Bayes', since these are merely frequencies and any statistician would arrive at Bayes' theorem to explain this. However, there is some thinking in human psychology that we might actually interpret frequencies or counts better because in the real world we don't ever _see_ a probability but everyone can see counts. Richard then prefaces the coming chapter of how we can use these realizations through sampling the posterior and counting. This helps tremendously when we have posteriors that might not be easy to do integral calculus with. In addition, with multiple parameters this issue becomes troublesome or even unattainable with traditional approaches.  
+@mcelreath2018statistical comments on how this is a misleading teaching
+moment of Bayes', since these are merely frequencies and any
+statistician would arrive at Bayes' theorem to explain this. However,
+there is some thinking in human psychology that we might actually
+interpret frequencies or counts better because in the real world we
+don't ever *see* a probability but everyone can see counts. Richard then
+prefaces the coming chapter of how we can use these realizations through
+sampling the posterior and counting. This helps tremendously when we
+have posteriors that might not be easy to do integral calculus with. In
+addition, with multiple parameters this issue becomes troublesome or
+even unattainable with traditional approaches.
 
-## Sampling from a grid-approximate posterior  
+## Sampling from a grid-approximate posterior
 
-Here we start off with going back and sampling from the watershed and stream example.  
+Here we start off with going back and sampling from the watershed and
+stream example.
 
 ```{r}
 p_grid <- seq( from=0 , to=1 , length.out=1000 )
@@ -77,48 +115,212 @@ posterior <- prob_data * prob_p
 posterior <- posterior / sum(posterior)
 ```
 
-Now we draw from this posterior, say 10,000 samples. Each sample we grab will have a proportion associated to the posterior probability. The more one sample is more likely the higher the proportion will be.  
+Now we draw from this posterior, say 10,000 samples. Each sample we grab
+will have a proportion associated to the posterior probability. The more
+one sample is more likely the higher the proportion will be.
 
 ```{r}
 samples <- sample(p_grid, prob = posterior, size = 1e4, replace = TRUE)
 ```
 
-
-```{r}
+```{r figure-13, echo=FALSE, fig.cap="Plotting density and samples for the p_grid"}
 plot(samples)
 dens(samples)
 ```
 
+## Sampling to summarize
 
-## Sampling to summarize  
+I love this intro by Richard, 'Once your model produces a posterior
+distribution, the model's work is done. But your work has just begun.'
+We now need to summarize and interpret our posterior distribution. This
+all depends too on your purpose:
 
-I love this intro by Richard, 'Once your model produces a posterior distribution, the model's work is done. But your work has just begun.' We now need to summarize and interpret our posterior distribution. This all depends too on your purpose:  
+-   How much posterior probability lies below some parameter value?
 
-* How much posterior probability lies below some parameter value?  
+-   How much posterior probability lies between two parameter values?
 
-* How much posterior probability lies between two parameter values?  
+-   Which parameter value marks the lower 5% of the posterior
+    probability?
 
-* Which parameter value marks the lower 5% of the posterior probability?  
+-   Which range of parameter values contains 90% of the posterior
+    probability?
 
-* Which range of parameter values contains 90% of the posterior probability?  
+-   Which parameter value has highest posterior probability?
 
-* Which parameter value has highest posterior probability?  
+@mcelreath2018statistical, breaks this up into three different questions
+about (1) intervals of *defined boundaries*, (2) questions about
+intervals of *defined probability mass*, and (3) questions about *point
+estimates*.
+
+### Intervals of defined boundaries
+
+Here we'll start going over the real reason you started learning about
+posteriors in the first place. What's going on between a defined
+boundary.
+
+```{r}
+sum(posterior[p_grid < 0.5])
+```
+
+So this is really high! About 99% of the posterior lies below 0.5, which
+is what we'd expect in this area of the world. This couldn't be easier
+as Richard points out but as he alludes to this will get more complex
+with increasing parameters.
+
+A way to make this more accessible is to use the samples that we
+generated from above. Then just remember to divide by the total, which
+is finding the frequency of parameter values below 0.5.
+
+```{r}
+sum(samples < 0.5) / 1e4
+```
+
+As you can see, almost exactly the same! Not too shabby. Now check and
+see using an interval other than 0 to 0.5.
+
+```{r}
+sum(samples < 0.3 & samples > 0.1)/1e4
+```
+
+So about 60% are in between 0.1 and 0.3.
+
+### Intervals of defined mass
+
+In this section Richard goes over the confusion behind
+`r colorize('confidence interals')` and
+`r colorize('credible intervals')`. To lessen the confusion, Richard
+proposes to call them `r colorize('compatibility intervals')` instead.
+The posterior intervals contain within them a probability mass. Again,
+in this example it is a lot easier to use the samples than the grid
+approximation.
+
+Using the `quantile()` makes this relatively easy in R. Below we can
+look at the middle 80% interval. We can also see below how the
+tailedness of the distribution is bounded on the left and fat on the
+right. This effects our interpretation because we are assuming equal
+tails. This is totally fine and is a great way to communicate the shape
+of the distribution but as long as the distribution is not asymetrical.
+
+```{r}
+quantile(samples, c(0.1, 0.9))
+
+d <- density(samples)
+d_between <- tibble(x = d$x[d$x > quantile(samples, 0.1) & d$x < quantile(samples, 0.9)],
+                    y = d$y[d$x > quantile(samples, 0.1) & d$x < quantile(samples, 0.9)])
+
+ggplot() + 
+  geom_area(data = d_between, aes(x, y), alpha = 0.5) +
+  geom_line(data = tibble(x = d$x, y = d$y), aes(x, y), linewidth = 1.5,color = 'red') 
+```
+
+Richard provides some handy function in the `rethinking` package like
+`PI()` and `HDPI`. `PI()` calculates the
+`r colorize('percentile intervals')` using the `quantile()` and
+assigning equal mass to the tails. Like we saw before, this isn't too
+big of a deal when the distribution is symmetrical but when it is skewed
+it becomes more of an issue because it will leave out values that are
+more probable!
+
+```{r}
+PI(samples, prob = 0.5)
+HPDI(samples, prob = 0.5)
+```
+
+Great one liner from Richard on the 95% CI convention, 'So what are you
+supposed to do then? There is no consensus, but thinking is always a
+good idea.' He then covers the pros and cons of HPDI but ultimately
+wants you to think about what you are trying to *estimate*.
+
+Richard then goes over the classic misinterpretation of a confidence
+interval and how most people find this to be really confusing. An
+important point he brings up is that we should be careful about the use
+of the word *true* when it comes to confidence intervals. This is just a
+model from the small world, right!?
+
+```{r, echo=FALSE}
+
+t <- tibble(mean = numeric(length = 100),
+            cil = numeric(length = 100),
+            cir = numeric(length = 100),
+            sample = numeric(length = 100))
+set.seed(1234)
+r <- rnorm(100)
+
+for(i in 1:100){
+#
+ttest <- t.test(r, rnorm(100))
+t[i, 'mean'] <- ttest$estimate[1]-ttest$estimate[2]
+t[i,'cil'] <- ttest$conf.int[1]
+t[i,'cir'] <- ttest$conf.int[2]
+
+ t[i,'sample'] <- i
+
+}
+
+t <- t %>% 
+  mutate(cross_zero = if_else(cil*cir < 0, 'Crosses', "Doesn't Cross"))
+
+t %>% 
+  ggplot(aes(mean, sample)) +
+  geom_point(size = 0.5, shape = 21) +
+  geom_errorbar(aes(xmin = cil, xmax = cir, color = cross_zero), padding = 3.5) +
+  geom_vline(xintercept = 0, linetype = 2) +
+  labs(color = '',
+       title = "Showing how 95% ci works with a random normal distribution",
+       subtitle = paste0("There are ", nrow(t) - sum(t$cross_zero == 'Crosses'), " samples that don't cross"))
+  
+
+```
+
+### Point estimates
+
+This is always the hard part, what value should you report or why? We want to communicate the entire posterior
+distribution, but people still want a single number or a cutoff. So, this puts us in a hard place. Richard points out that this can really be difficult if the question at hand isn't realized, meaning that blindly going with a point estimate isn't necessarily going to answer your question. For example, Richard goes through different point estimates (mean, mode, median) and shows how they are all different (\@ref(fig:figure-14)). This becomes even more dramatic when the distribution isn't a traditional symetric bell curve.  
+
+```{r}
+p_grid[which.max(posterior)]
+
+chainmode(samples, adj=0.01)
+
+mean(samples)
+
+median(samples)
+```
+
+```{r, figure-14, echo=FALSE, fig.cap="Using Bayes' to calculate probability of stream being positive (y-axis) given a sequence of proportion of streams (x-axis)."}
+
+mode <- chainmode(samples, adj=0.01)
+
+mean <- mean(samples)
+
+median <- median(samples)
+
+ggplot() +
+  geom_line(data = tibble(x = d$x, y = d$y), aes(x, y), linewidth = 1.5,color = 'red')  +
+  geom_vline(data = tibble(type = c('mode', 'mean', 'median'),
+value = c(mode, mean, median)), aes(xintercept = value, linetype = type,
+color = type), size = 0.75) +
+theme_bw()
+```
+
+This leads us to go beyond the point estimates and explore a `r colorize(LOSS FUNCTION)`. This loss function will help us understand better what the point estimate is doing. Richard goes through example with betting the proportion of water on earth. We'll use the stream proportion instead. Suppose you guess the proportion of streams in a watershed and if you are right you'll get \$100 but if wrong then I'll subtract money from your gain proportional to the distance of the correct answer ($d-p$). Below, we'll go through a loss function using the median.  
+
+```{r}
+
+loss <- sapply( p_grid , function(d) sum( posterior*abs( d - p_grid ) ) )
+
+p_grid[ which.min(loss) ]
 
 
-@mcelreath2018statistical, breaks this up into three different questions about (1) intervals of _defined
-boundaries_, (2) questions about intervals of _defined probability mass_, and (3) questions about
-_point estimates_.  
+d <- density(loss)
+d_between <- tibble(x = d$x[d$x > quantile(samples, 0.1) & d$x < quantile(samples, 0.9)],
+                    y = d$y[d$x > quantile(samples, 0.1) & d$x < quantile(samples, 0.9)])
 
-### Intervals of defined boundaries  
+ggplot(tibble(x = d$x,
+y = d-p_grid)) + 
+  geom_line( aes(x, y), linewidth = 1.5,color = 'red')
 
-
-
-
-
-
-
-
-
+```
 
 
 
