@@ -37,9 +37,9 @@ This is the humble beginnings of Bayesian inference: counting and comparing poss
 
 ### Counting possibilities  
 
-Here we'll take a play on the marble scenario but use fish in a bucket. Let's say you have a stream with either Bull Trout (_salvelinus confluentus_) or Rainbow Trout (Oncorhynchus Mykiss) and let's say there are 4 samples from that stream. There are five different possibilities in these samples: some with all and some mixed,  
+Here we'll take a play on the marble scenario but use fish in a stream. Let's say you have a stream with either Bull Trout (_salvelinus confluentus_) or Rainbow Trout (Oncorhynchus Mykiss) and let's say there are 4 samples from that stream. There are five different possibilities in these samples: some with all and some mixed,  
 
-```{r figure-1,fig.cap='Possibilities in the bucket.', echo = F}
+```{r figure-1,fig.cap='Possibilities in the stream.', echo = F}
 library(tidyverse)
 library(ggsvg)
 d <-
@@ -71,12 +71,12 @@ d %>%
   scale_x_continuous(NULL, breaks = NULL) +
   coord_cartesian(xlim = c(.75, 4.25),
                   ylim = c(.75, 5.25)) +
-    labs(fill = '', svg = 'Fish Type', title = 'Different Possibilities of Fish in the Bucket') 
+    labs(fill = '', svg = 'Fish Type', title = 'Different Possibilities of Fish in the stream') 
 ```
 
-We want to figure out what conjecture is most plausible, given the evidence about the samples. Let's say that in the first 3 samples (with replacement) you get: Bull Trout, Rainbow Trout, Bull Trout (BT, RB, BT). Then what is the most plausible configuration in the stream? Let's consider one example; `p2` (possibility #2) from Figure \@ref(fig:figure-1) (BT, RB, RB, RB). This is where the forking paths comes in handy because we can count the ways that this possibility can happen (Figure \@ref(fig:figure-2)), i.e. possibility meaning there is 3 RB and 1 BT in the bucket. 
+We want to figure out what conjecture is most plausible, given the evidence about the samples. Let's say that in the first 3 samples (with replacement) you get: Bull Trout, Rainbow Trout, Bull Trout (BT, RB, BT). Then what is the most plausible configuration in the stream? Let's consider one example; `p2` (possibility #2) from Figure \@ref(fig:figure-1) (BT, RB, RB, RB). This is where the forking paths comes in handy because we can count the ways that this possibility can happen (Figure \@ref(fig:figure-2)), i.e. possibility meaning there is 3 RB and 1 BT in the stream. 
 
-```{r figure-2, fig.cap="Paths taken in the bucket of forking fish.", echo = F}
+```{r figure-2, fig.cap="Paths taken in the stream of forking fish.", echo = F}
   d <-tibble(position = c((1:4^1) / 4^0, 
                       (1:4^2) / 4^1, 
                       (1:4^3) / 4^2),
@@ -192,7 +192,7 @@ d %>%
 
 ```
 
-In Figure \@ref(fig:figure-2) above, we can see that there is 1 way of getting a bull trout in the first draw, 3 ways in the second and 1 again in the third. We can now do this for all the possibilities. Figure \@ref(fig:figure-2) shows that there are 3 _paths_ or _ways_ for the bag to contain (BT, RB, RB, RB). Now this is great but we need to test all of the ways right? For example, let's say that we wanted to see if the bucket had all RB!? Right, that doesn't make sense. We pulled BT twice so this definitely isn't possible. Same goes for all BT. Since these paths don't exist based on our reality, we know that the way to produce them is 0. Now that we know the ways to produce (BT, RB, RB, RB) and the 0's, let's look at the others in Table \@ref(tab:table-1) below.  
+In Figure \@ref(fig:figure-2) above, we can see that there is 1 way of getting a bull trout in the first draw, 3 ways in the second and 1 again in the third. We can now do this for all the possibilities. Figure \@ref(fig:figure-2) shows that there are 3 _paths_ or _ways_ for the bag to contain (BT, RB, RB, RB). Now this is great but we need to test all of the ways right? For example, let's say that we wanted to see if the stream had all RB!? Right, that doesn't make sense. We pulled BT twice so this definitely isn't possible. Same goes for all BT. Since these paths don't exist based on our reality, we know that the way to produce them is 0. Now that we know the ways to produce (BT, RB, RB, RB) and the 0's, let's look at the others in Table \@ref(tab:table-1) below.  
 
 ```{r table-1, echo = F}
 # if we make two custom functions, here, it will simplify the code within `mutate()`, below
@@ -216,7 +216,7 @@ t <-
   mutate(`ways to produce` = `draw 1: Bull Trout` * `draw 2: Rainbow Trout` * `draw 3: Bull Trout`)
 
 t %>% 
-  knitr::kable(caption = 'Conjectures and Ways to Produce Fish in a Bucket') 
+  knitr::kable(caption = 'Conjectures and Ways to Produce Fish in a stream') 
 ```
 
 We can see based on our sample that (RB, BT, BT, BT) has 9 ways and (RB, RB, BT, BT) has 8 ways. These 5 different conjectures give us different _paths_ through the garden of forking data and tell us how we could produce (BT, RB, BT). As you can see in Table \@ref(tab:table-1), we just multiply the intermediary steps instead of counting but you'll see later that this is really handy when the conjectures grow.  
@@ -225,7 +225,7 @@ We can see based on our sample that (RB, BT, BT, BT) has 9 ways and (RB, RB, BT,
 
 What if we had information about the relative plausibility of each conjecture? Many ways we might have this but the important point is that it can help us to update these conjectures. In our case there's an easy solution: just multiply the counts.  
 
-Let's consider our initial data and call them _priors_. Now let's say we draw another fish out of the bucket and it's a Bull Trout (BT). We could just start all over again and count the paths, etc or we could just multiply by the new observation and ways to produce it given the conjecture. It turns out these methods are mathematically identical (independent assumption). So to do this, we'll just take the _prior_ counts based on (BT, RB, BT) <=> (0, 3, 8, 9, 0) and multiply by the new ways (0, 1, 2, 3, 4) (Table \@ref(tab:table-2)).  
+Let's consider our initial data and call them _priors_. Now let's say we draw another fish out of the stream and it's a Bull Trout (BT). We could just start all over again and count the paths, etc or we could just multiply by the new observation and ways to produce it given the conjecture. It turns out these methods are mathematically identical (independent assumption). So to do this, we'll just take the _prior_ counts based on (BT, RB, BT) <=> (0, 3, 8, 9, 0) and multiply by the new ways (0, 1, 2, 3, 4) (Table \@ref(tab:table-2)).  
 
 ```{r table-2, echo=F}
 
@@ -253,7 +253,7 @@ This is great because as new data arrives we can just update!
 
 ### From counts to probability  
 
-Counts are great as a pedagogical example of how the garden of forking data works but as the data grows counts will be become difficult to work with (imagine having ten fish in a bucket). All of this becomes easier when we compress it into a formula and use multiplication. Let's look at the previous example but now within a formula and _speaking_ it out.    
+Counts are great as a pedagogical example of how the garden of forking data works but as the data grows counts will be become difficult to work with (imagine having ten fish in a stream). All of this becomes easier when we compress it into a formula and use multiplication. Let's look at the previous example but now within a formula and _speaking_ it out.    
 
 $$
 \text{plausibility of} \ p \ \text{after} \ D_{new} \ \propto \ \text{ways} \ p \ \text{can produce} \ D_{new} \ \times \ \text{prior plausibility of } p
@@ -349,7 +349,7 @@ It will be much easier though to see it in action and how each sample will updat
 
 ### Bayesian updating  
 
-Remember the 'fish in a bucket' example earlier where we followed the paths to come up with _ways_ and _plausibilities_, well it's going to be the same process but now we'll just use random samples in the watershed instead. Each time we sample from the watershed, we'll update the posterior plausibility by taking the `r colorize('prior')` and multiplying it by the `r colorize('likelihood')`. We'll call this `r colorize("Bayesian Updating")` and we can see the process happening in Figure \@ref(fig:figure-4). But first, we need to get the data (samples) and then show how it updates after each event.  
+Remember the 'fish in a stream' example earlier where we followed the paths to come up with _ways_ and _plausibilities_, well it's going to be the same process but now we'll just use random samples in the watershed instead. Each time we sample from the watershed, we'll update the posterior plausibility by taking the `r colorize('prior')` and multiplying it by the `r colorize('likelihood')`. We'll call this `r colorize("Bayesian Updating")` and we can see the process happening in Figure \@ref(fig:figure-4). But first, we need to get the data (samples) and then show how it updates after each event.  
 
 So, we'll randomly sample the stream raster in Figure \@ref(fig:figure-3) to get 9 samples of either S (stream) or L (land). 
 

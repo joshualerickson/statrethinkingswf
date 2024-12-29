@@ -17,6 +17,9 @@ tab:unnamed-chunk-13
 tab:unnamed-chunk-14
 tab:unnamed-chunk-15
 fig:figure-12
+fig:figure-13-1
+fig:figure-13-2
+fig:figure-14
 the-golem-of-prague
 small-worlds-and-large-worlds
 small-worlds-and-large-worlds-1

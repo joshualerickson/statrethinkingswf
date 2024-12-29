@@ -303,18 +303,23 @@ color = type), size = 0.75) +
 theme_bw()
 ```
 
-This leads us to go beyond the point estimates and explore a `r colorize(LOSS FUNCTION)`. This loss function will help us understand better what the point estimate is doing. Richard goes through example with betting the proportion of water on earth. We'll use the stream proportion instead. Suppose you guess the proportion of streams in a watershed and if you are right you'll get \$100 but if wrong then I'll subtract money from your gain proportional to the distance of the correct answer ($d-p$). Below, we'll go through a loss function using the median.  
+This leads us to go beyond the point estimates and explore a `r colorize('LOSS FUNCTION')`. This loss function will help us understand better what the point estimate is doing. Richard goes through example with betting the proportion of water on earth. We'll use the stream proportion instead. Suppose you guess the proportion of streams in a watershed and if you are right you'll get \$100 but if wrong then I'll subtract money from your gain proportional to the distance of the correct answer ($d-p$). Below, we'll go through a loss function using the median.  
 
-```{r}
+```{r, eval=FALSE}
 
-loss <- sapply( p_grid , function(d) sum( posterior*abs( d - p_grid ) ) )
+make_loss <- function(our_d) {
+  d %>% 
+    mutate(loss = posterior * abs(our_d - p_grid)) %>% 
+    summarise(weighted_average_loss = sum(loss))
+}
 
-p_grid[ which.min(loss) ]
+l <-
+ tibble(p_grid = p_grid) %>% 
 
+  rename(decision = p_grid) %>% 
+  mutate(weighted_average_loss = purrr::map(decision, make_loss)) %>% 
+  unnest(weighted_average_loss) 
 
-d <- density(loss)
-d_between <- tibble(x = d$x[d$x > quantile(samples, 0.1) & d$x < quantile(samples, 0.9)],
-                    y = d$y[d$x > quantile(samples, 0.1) & d$x < quantile(samples, 0.9)])
 
 ggplot(tibble(x = d$x,
 y = d-p_grid)) + 

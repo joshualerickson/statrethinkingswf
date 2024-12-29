@@ -1,0 +1,30 @@
+
+.b--gray {
+  border-color: #888888;
+}
+.b--red {
+  border-color: red;
+}
+.b--green {
+  border-color: green;
+}
+.ba {
+  border-style: solid;
+}
+.bw2 {
+  border-width: .25em;
+}
+.ma2 {
+  margin: 1.5em;
+}
+.pa4 {
+  padding: 0.5em;
+}
+.shadow-1 {
+  box-shadow: 4px 4px 8px 0 rgba(0,0,0,.2);
+}
+
+.blue {
+  color: #1d33cc;
+  text-transform: uppercase;
+}
