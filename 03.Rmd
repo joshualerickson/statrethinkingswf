@@ -98,7 +98,7 @@ interpret frequencies or counts better because in the real world we
 don't ever *see* a probability but everyone can see counts. Richard then
 prefaces the coming chapter of how we can use these realizations through
 sampling the posterior and counting. This helps tremendously when we
-have posteriors that might not be easy to do integral calculus with. In
+have posteriors that might not be easy to integrate. In
 addition, with multiple parameters this issue becomes troublesome or
 even unattainable with traditional approaches.
 
